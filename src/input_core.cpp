@@ -56,6 +56,11 @@ RouteResult InputRouter::handle(const KeyEvent& event) {
 
     if (is_modifier(event.virtual_key)) {
         set_modifier(event.virtual_key, event.key_down);
+        if (!event.key_down && event.virtual_key == vk_left_alt && left_alt_used_for_accent_) {
+            left_alt_used_for_accent_ = false;
+            cancel_sequence();
+            return {.suppress = true, .mask_left_alt_release = true};
+        }
         if ((event.key_down && event.virtual_key != vk_left_alt) ||
             (!event.key_down && event.virtual_key == vk_left_alt)) {
             cancel_sequence();
@@ -78,6 +83,7 @@ RouteResult InputRouter::handle(const KeyEvent& event) {
     }
 
     consumed_keys_[event.virtual_key] = true;
+    left_alt_used_for_accent_ = true;
 
     if (characters.size() == 1) {
         cancel_sequence();
@@ -112,6 +118,7 @@ void InputRouter::abort_consumed_key(unsigned int virtual_key) noexcept {
     if (virtual_key < consumed_keys_.size()) {
         consumed_keys_[virtual_key] = false;
     }
+    left_alt_used_for_accent_ = false;
     cancel_sequence();
 }
 

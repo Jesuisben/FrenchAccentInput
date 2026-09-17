@@ -28,3 +28,13 @@ target_link_libraries(FrenchAccentInput PRIVATE fai_core user32 shell32)
 if(MSVC)
   target_compile_options(FrenchAccentInput PRIVATE /W4 /WX /permissive- /utf-8)
 endif()
+
+# dist에는 복사하지 않는 test-only host다. injected virtual keyboard event만 router에 통과시킨다.
+add_executable(FrenchAccentInputVirtualKeyboardHost WIN32 src/main.cpp resources/version.rc)
+target_compile_features(FrenchAccentInputVirtualKeyboardHost PRIVATE cxx_std_20)
+target_compile_definitions(FrenchAccentInputVirtualKeyboardHost PRIVATE FAI_TEST_ALLOW_INJECTED UNICODE _UNICODE WIN32_LEAN_AND_MEAN _WIN32_WINNT=0x0A00)
+target_link_libraries(FrenchAccentInputVirtualKeyboardHost PRIVATE fai_core user32 shell32)
+
+if(MSVC)
+  target_compile_options(FrenchAccentInputVirtualKeyboardHost PRIVATE /W4 /WX /permissive- /utf-8)
+endif()

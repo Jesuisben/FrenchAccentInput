@@ -33,6 +33,7 @@ struct Edit {
 
 struct RouteResult {
     bool suppress = false;
+    bool mask_left_alt_release = false;
     std::optional<Edit> edit;
 };
 
@@ -55,6 +56,7 @@ private:
     bool right_shift_down_ = false;
     bool left_windows_down_ = false;
     bool right_windows_down_ = false;
+    bool left_alt_used_for_accent_ = false;
     std::array<bool, 256> consumed_keys_{};
 
     char active_key_ = 0;

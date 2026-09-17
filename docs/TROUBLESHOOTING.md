@@ -4,6 +4,27 @@
 
 문제의 증상, 직접 원인, 확인 근거, 수정, 재검증을 순서대로 남긴다. 예상과 실제 실행 결과를 섞지 않는다.
 
+## 2026-09-17: 실제 물리 Left Alt accent 입력이 간헐적으로 실패함
+
+- 증상: Windows 11 실제 물리 Left Alt를 누른 채 E를 입력하면 `é`가 입력될 때와 아닐 때가 있고, accent 입력 중 menu/access-key UI가 간헐적으로 활성화됐다. 같은 Alt session의 E 반복도 직전 문자를 교체하지 못하는 경우가 있었다.
+- 재현 조건: 실제 물리 Left Alt hold + E 반복. Alt+Tab은 같은 환경에서 정상 동작했다.
+- 조사 과정: `WH_KEYBOARD_LL`이 `WM_KEYDOWN`/`WM_SYSKEYDOWN`/`WM_KEYUP`/`WM_SYSKEYUP`을 받는 흐름과 Alt+Tab pass-through를 비교했다. Microsoft [LowLevelKeyboardProc](https://learn.microsoft.com/en-us/windows/win32/winmsg/lowlevelkeyboardproc), [KBDLLHOOKSTRUCT](https://learn.microsoft.com/ko-kr/windows/win32/api/winuser/ns-winuser-kbdllhookstruct), [SendInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput), [KEYBDINPUT](https://learn.microsoft.com/ko-kr/windows/win32/api/winuser/ns-winuser-keybdinput), [WM_SYSKEYUP](https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-syskeyup) 문서와 대조했다. `LLKHF_ALTDOWN`은 Alt context code이고 `SendInput`은 현재 keyboard state를 reset하지 않아 이미 눌린 key가 input에 간섭할 수 있다. `KEYEVENTF_UNICODE`는 `VK_PACKET` 뒤 `WM_CHAR`를 만든다.
+- root cause: `SendInput`은 이미 눌린 modifier state를 reset하지 않는다. 그래서 physical Left Alt를 계속 누른 채 Unicode만 주입하면 입력이 방해될 수 있다. 반대로 plain synthetic Alt up/down은 `WM_SYSKEYUP`과 `SC_KEYMENU` 경로를 만들 수 있다. physical Alt key-up 자체를 단순 suppress하는 것은 해결책이 아니며 다음 항목의 UI click regression을 만들었다.
+- 수정: output 때 Ctrl-mask + temporary Left Alt up → Unicode `\b`/character → Left Alt down을 보낸다. 실제 accent session의 마지막 physical Left Alt up은 Ctrl-mask + synthetic Alt up으로 대체 전달한다. injection 실패 시 원래 key-up은 fail-open으로 통과한다.
+- RED/GREEN: `accent_masks_following_left_alt_release`와 failed-output Alt release test를 추가했다. 이전 단순 suppress 구현은 `Left Alt release after an accent must reach Windows to clear modifier state`로 실패했고, 대체 release routing 후 CTest가 통과했다.
+- 자동 재검증: warning-as-error Release x64 build, standalone first/duplicate/`--quit-existing`, Inno Setup 7.1.0 build, silent install, 설치 EXE, 설치본 run/exit, uninstall, install folder와 uninstall registry 제거를 fresh하게 성공했다.
+- 남은 사용자 물리 검증: `instructions/02_USER_ACTION_REQUIRED.md`의 Left Alt/menu UI, representative app, Korean IME checklist가 PASS해야 한다.
+
+## 2026-09-17: accent 뒤 UI button click 비정상
+
+- 증상: 사용자 물리 재검증에서 French Accent Input 사용 뒤 버튼이 클릭되지 않는 비정상 상태가 보고됐다.
+- 재현 정보: 앱·키·반복 조건은 아직 상세 미확정이다. 즉시 `02_USER_ACTION_REQUIRED.md`를 사용자 작업 없음으로 되돌리고 Codex가 조사한다.
+- root cause: `InputRouter::suppress_left_alt_release_`가 accent 뒤 physical Left Alt key-up을 hook에서 막았다. `WH_KEYBOARD_LL` callback이 nonzero를 반환하면 system이 event를 target window procedure로 전달하지 않는다. 따라서 target은 modifier release를 받지 못해 button click 등 후속 UI input이 비정상일 수 있다.
+- RED/GREEN: test를 `accent_preserves_following_left_alt_release`로 바꿨다. 수정 전 `Left Alt release after an accent must reach Windows to clear modifier state` assertion이 실패했고, `suppress_left_alt_release_`와 해당 suppress를 제거한 뒤 CTest가 통과했다.
+- 자동 재검증: 수정 source Release x64 build, CTest 1/1, standalone first/duplicate/`--quit-existing`, silent installer install/run/exit/uninstall, install folder·uninstall registry 제거를 fresh하게 성공했다.
+- 폐기한 검증: Computer Use 계산기 button click은 accent keyboard path를 실행하지 않았다. 따라서 이 failure의 root-cause 또는 fix 증거가 아니며 release evidence에서 제외한다.
+- 다음 자동 검증: test-only hook host가 virtual keyboard input을 routing하고 real foreground target의 visible text를 확인한다. physical keyboard와 IME PASS는 여전히 별도 evidence다.
+
 ## 2026-09-17: toolchain 명령이 PATH에 없음
 
 - 증상: `cmake`, `ctest`, `cl` 명령을 일반 PowerShell에서 찾지 못했다.

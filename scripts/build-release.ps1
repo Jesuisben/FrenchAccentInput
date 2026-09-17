@@ -15,7 +15,7 @@ function Find-Tool {
     foreach ($Candidate in $Candidates) {
         if (Test-Path -LiteralPath $Candidate) { return $Candidate }
     }
-    throw "$Name 도구를 찾지 못했습니다. docs/BUILD_GUIDE.ko.md의 설치 절차를 확인하세요."
+    throw "$Name 도구를 찾지 못했습니다. Visual Studio Build Tools 또는 Inno Setup 설치를 확인하세요."
 }
 
 # PATH에 없는 Visual Studio bundled CMake도 같은 명령으로 찾는다.

@@ -44,7 +44,7 @@ Set-Location 'C:\path\to\FrenchAccentInput'
 .\scripts\build-release.ps1
 ```
 
-Artifacts are written to `dist\`. See [the Korean build guide](docs/BUILD_GUIDE.ko.md) for the complete source-by-source tutorial, tests, installer verification, GitHub Release steps, and troubleshooting.
+Artifacts are written to `dist\`. A Korean source-by-source study guide will be created only after final code and physical-keyboard qualification are complete.
 
 ## Limitations
 
@@ -101,7 +101,7 @@ Set-Location 'C:\path\to\FrenchAccentInput'
 .\scripts\build-release.ps1
 ```
 
-결과물은 `dist\`에 생성된다. 모든 source 설명, test, installer 검증, GitHub Release, 문제 해결은 [한국어 제작 가이드](docs/BUILD_GUIDE.ko.md)에 있다.
+결과물은 `dist\`에 생성된다. 최종 source와 물리 keyboard 검증이 모두 확정된 뒤에만 한국어 완전 제작 가이드를 새로 작성한다.
 
 ## 한계
 

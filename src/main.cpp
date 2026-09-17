@@ -3,19 +3,27 @@
 #include <windows.h>
 #include <shellapi.h>
 
+#include <array>
 #include <cstdint>
 #include <cwchar>
 #include <vector>
 
 namespace {
 
+#if defined(FAI_TEST_ALLOW_INJECTED)
+constexpr wchar_t app_name[] = L"French Accent Input Virtual Keyboard Test";
+constexpr wchar_t window_class_name[] = L"FrenchAccentInput.VirtualKeyboardTest.HiddenWindow";
+constexpr wchar_t mutex_name[] = L"Local\\FrenchAccentInput-VirtualKeyboardTest";
+#else
 constexpr wchar_t app_name[] = L"French Accent Input";
 constexpr wchar_t window_class_name[] = L"FrenchAccentInput.HiddenWindow";
 constexpr wchar_t mutex_name[] = L"Local\\FrenchAccentInput-4A67FCE1-5DC0-4ACB-9843-9672E4CBE071";
+#endif
 constexpr ULONG_PTR injection_marker = 0x46414931;
 constexpr UINT tray_icon_id = 1;
 constexpr UINT tray_callback_message = WM_APP + 1;
 constexpr UINT input_warning_message = WM_APP + 2;
+constexpr UINT virtual_keyboard_message = WM_APP + 3;
 constexpr UINT exit_command_id = 1001;
 
 HHOOK keyboard_hook = nullptr;
@@ -24,15 +32,14 @@ HWND hidden_window = nullptr;
 UINT taskbar_created_message = 0;
 fai::InputRouter router;
 bool warning_shown = false;
+int integration_exit_code = 0;
+bool integration_direct_unicode = false;
 
-INPUT virtual_key_input(WORD virtual_key, DWORD flags) {
-    INPUT input{};
-    input.type = INPUT_KEYBOARD;
-    input.ki.wVk = virtual_key;
-    input.ki.dwFlags = flags;
-    input.ki.dwExtraInfo = injection_marker;
-    return input;
-}
+#if defined(FAI_TEST_ALLOW_INJECTED)
+constexpr bool allow_virtual_keyboard_input = true;
+#else
+constexpr bool allow_virtual_keyboard_input = false;
+#endif
 
 INPUT unicode_input(wchar_t character, DWORD flags) {
     INPUT input{};
@@ -43,23 +50,62 @@ INPUT unicode_input(wchar_t character, DWORD flags) {
     return input;
 }
 
+INPUT virtual_key_input(WORD virtual_key, DWORD flags) {
+    INPUT input{};
+    input.type = INPUT_KEYBOARD;
+    input.ki.wVk = virtual_key;
+    input.ki.dwFlags = flags;
+    return input;
+}
+
+INPUT marked_virtual_key_input(WORD virtual_key, DWORD flags) {
+    auto input = virtual_key_input(virtual_key, flags);
+    input.ki.dwExtraInfo = injection_marker;
+    return input;
+}
+
+void append_masked_alt_up(std::vector<INPUT>& inputs) {
+    // Ctrl를 함께 누르면 Alt up이 WM_SYSKEYUP/SC_KEYMENU 경로로 가지 않는다.
+    inputs.push_back(marked_virtual_key_input(VK_LCONTROL, 0));
+    inputs.push_back(marked_virtual_key_input(VK_LMENU, KEYEVENTF_KEYUP));
+    inputs.push_back(marked_virtual_key_input(VK_LCONTROL, KEYEVENTF_KEYUP));
+}
+
+bool send_virtual_e_cycle() {
+    std::array<INPUT, 10> inputs{
+        virtual_key_input(VK_LMENU, 0),
+        virtual_key_input('E', 0),
+        virtual_key_input('E', KEYEVENTF_KEYUP),
+        virtual_key_input('E', 0),
+        virtual_key_input('E', KEYEVENTF_KEYUP),
+        virtual_key_input('E', 0),
+        virtual_key_input('E', KEYEVENTF_KEYUP),
+        virtual_key_input('E', 0),
+        virtual_key_input('E', KEYEVENTF_KEYUP),
+        virtual_key_input(VK_LMENU, KEYEVENTF_KEYUP),
+    };
+    return SendInput(static_cast<UINT>(inputs.size()), inputs.data(), sizeof(INPUT)) == inputs.size();
+}
+
 enum class SendStatus { success, blocked, partial };
 
 SendStatus send_edit(const fai::Edit& edit) {
     std::vector<INPUT> inputs;
-    inputs.reserve(edit.replace_previous ? 7U : 5U);
+    inputs.reserve((edit.replace_previous ? 4U : 2U) + 5U);
 
-    // Alt가 눌린 상태에서는 Backspace가 앱별 단축키가 될 수 있으므로 잠시 해제한다.
-    inputs.push_back(virtual_key_input(VK_LMENU, KEYEVENTF_KEYUP));
+    append_masked_alt_up(inputs);
+
     if (edit.replace_previous) {
-        inputs.push_back(virtual_key_input(VK_BACK, 0));
-        inputs.push_back(virtual_key_input(VK_BACK, KEYEVENTF_KEYUP));
+        inputs.push_back(unicode_input(L'\b', 0));
+        inputs.push_back(unicode_input(L'\b', KEYEVENTF_KEYUP));
     }
 
+    // 물리 Left Alt는 건드리지 않는다. synthetic Alt key-up은 target의 SC_KEYMENU를 유발할 수 있다.
     // KEYEVENTF_UNICODE는 현재 keyboard layout과 무관하게 UTF-16 문자를 전달한다.
     inputs.push_back(unicode_input(edit.character, 0));
     inputs.push_back(unicode_input(edit.character, KEYEVENTF_KEYUP));
-    inputs.push_back(virtual_key_input(VK_LMENU, 0));
+
+    inputs.push_back(marked_virtual_key_input(VK_LMENU, 0));
 
     const UINT sent = SendInput(static_cast<UINT>(inputs.size()), inputs.data(), sizeof(INPUT));
     if (sent == inputs.size()) {
@@ -69,10 +115,15 @@ SendStatus send_edit(const fai::Edit& edit) {
         return SendStatus::blocked;
     }
 
-    // 부분 전송은 Alt가 논리적으로 올라간 채 남을 수 있다. 복구 입력은 best effort다.
-    auto restore_alt = virtual_key_input(VK_LMENU, 0);
-    (void)SendInput(1, &restore_alt, sizeof(INPUT));
     return SendStatus::partial;
+}
+
+SendStatus send_masked_alt_release() {
+    std::vector<INPUT> inputs;
+    inputs.reserve(3U);
+    append_masked_alt_up(inputs);
+    const UINT sent = SendInput(static_cast<UINT>(inputs.size()), inputs.data(), sizeof(INPUT));
+    return sent == inputs.size() ? SendStatus::success : (sent == 0 ? SendStatus::blocked : SendStatus::partial);
 }
 
 void show_input_warning() {
@@ -151,8 +202,8 @@ LRESULT CALLBACK keyboard_proc(int code, WPARAM message, LPARAM event_data) {
         return CallNextHookEx(keyboard_hook, code, message, event_data);
     }
 
-    const bool injected = (data->flags & LLKHF_INJECTED) != 0 ||
-                          data->dwExtraInfo == injection_marker;
+    const bool injected = data->dwExtraInfo == injection_marker ||
+                          (!allow_virtual_keyboard_input && (data->flags & LLKHF_INJECTED) != 0);
     const fai::KeyEvent event{
         .virtual_key = data->vkCode,
         .key_down = key_down,
@@ -171,6 +222,13 @@ LRESULT CALLBACK keyboard_proc(int code, WPARAM message, LPARAM event_data) {
         if (status == SendStatus::partial) {
             router.cancel_sequence();
             (void)PostMessageW(hidden_window, input_warning_message, 0, 0);
+        }
+    }
+
+    if (route.mask_left_alt_release) {
+        const auto status = send_masked_alt_release();
+        if (status != SendStatus::success) {
+            return CallNextHookEx(keyboard_hook, code, message, event_data);
         }
     }
 
@@ -208,6 +266,23 @@ LRESULT CALLBACK window_proc(HWND window, UINT message, WPARAM wparam, LPARAM lp
         return 0;
     case input_warning_message:
         show_input_warning();
+        return 0;
+    case virtual_keyboard_message:
+        if (!allow_virtual_keyboard_input) {
+            integration_exit_code = 1;
+        } else if (integration_direct_unicode) {
+            std::array<INPUT, 2> inputs{
+                unicode_input(L'é', 0),
+                unicode_input(L'é', KEYEVENTF_KEYUP),
+            };
+            if (SendInput(static_cast<UINT>(inputs.size()), inputs.data(), sizeof(INPUT)) !=
+                inputs.size()) {
+                integration_exit_code = 1;
+            }
+        } else if (!send_virtual_e_cycle()) {
+            integration_exit_code = 1;
+        }
+        DestroyWindow(window);
         return 0;
     case WM_DESTROY:
         remove_tray_icon();
@@ -279,6 +354,17 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR command_line, int) {
         return 1;
     }
 
+    if (allow_virtual_keyboard_input && command_line != nullptr &&
+        (wcsstr(command_line, L"--virtual-e-cycle") != nullptr ||
+         wcsstr(command_line, L"--virtual-e-cycle-delayed") != nullptr ||
+         wcsstr(command_line, L"--virtual-unicode-e") != nullptr)) {
+        integration_direct_unicode = wcsstr(command_line, L"--virtual-unicode-e") != nullptr;
+        if (wcsstr(command_line, L"--virtual-e-cycle-delayed") != nullptr) {
+            Sleep(5000);
+        }
+        (void)PostMessageW(hidden_window, virtual_keyboard_message, 0, 0);
+    }
+
     MSG message{};
     BOOL message_result = 0;
     while ((message_result = GetMessageW(&message, nullptr, 0, 0)) > 0) {
@@ -290,5 +376,5 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR command_line, int) {
     if (message_result == -1) {
         return 1;
     }
-    return static_cast<int>(message.wParam);
+    return integration_exit_code != 0 ? integration_exit_code : static_cast<int>(message.wParam);
 }

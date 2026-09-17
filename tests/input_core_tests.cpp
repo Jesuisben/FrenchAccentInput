@@ -63,17 +63,66 @@ void single_character_keys_append() {
            "repeated C must append another ç");
 }
 
+void all_accent_mappings_are_stable() {
+    struct Expected { unsigned int key; wchar_t character; };
+    constexpr Expected expected[] = {
+        {'A', L'à'}, {'C', L'ç'}, {'E', L'é'}, {'I', L'ï'},
+        {'O', L'ô'}, {'U', L'ù'}, {'Y', L'ÿ'},
+    };
+    for (const auto& item : expected) {
+        fai::InputRouter router;
+        (void)router.handle(down(fai::vk_left_alt));
+        const auto result = router.handle(down(item.key));
+        expect(result.suppress && result.edit && result.edit->character == item.character &&
+                   !result.edit->replace_previous,
+               "each supported key must begin its documented accent sequence");
+    }
+}
+
+void multi_character_sequences_replace_and_wrap() {
+    struct Sequence { unsigned int key; const wchar_t* values; };
+    constexpr Sequence sequences[] = {
+        {'A', L"àâæ"}, {'I', L"ïî"}, {'O', L"ôœ"}, {'U', L"ùûü"},
+    };
+    for (const auto& sequence : sequences) {
+        fai::InputRouter router;
+        (void)router.handle(down(fai::vk_left_alt));
+        for (std::size_t index = 0; sequence.values[index] != L'\0'; ++index) {
+            const auto result = router.handle(down(sequence.key));
+            expect(result.edit && result.edit->character == sequence.values[index] &&
+                       result.edit->replace_previous == (index != 0),
+                   "multi-character sequence must replace the preceding accent");
+            (void)router.handle(up(sequence.key));
+        }
+        const auto wrapped = router.handle(down(sequence.key));
+        expect(wrapped.edit && wrapped.edit->character == sequence.values[0] &&
+                   wrapped.edit->replace_previous,
+               "multi-character sequence must wrap in the same Alt session");
+    }
+}
+
 void native_shortcuts_and_injected_events_pass() {
     // 이 시험이 실패하면 악상 기능이 Windows의 기존 shortcut을 침범한 것이다.
     fai::InputRouter router;
     (void)router.handle(down(fai::vk_left_alt));
     expect(!router.handle(down(fai::vk_tab)).suppress, "Alt+Tab must pass");
     expect(!router.handle(down(fai::vk_f4)).suppress, "Alt+F4 must pass");
+    expect(!router.handle(down('Q')).suppress, "unsupported Alt shortcut must pass");
 
     fai::InputRouter ctrl_router;
     (void)ctrl_router.handle(down(fai::vk_left_alt));
     (void)ctrl_router.handle(down(fai::vk_left_control));
     expect(!ctrl_router.handle(down('E')).suppress, "Ctrl+Alt+E must pass");
+
+    fai::InputRouter shift_router;
+    (void)shift_router.handle(down(fai::vk_left_alt));
+    (void)shift_router.handle(down(fai::vk_left_shift));
+    expect(!shift_router.handle(down('E')).suppress, "Shift+Alt+E must pass");
+
+    fai::InputRouter windows_router;
+    (void)windows_router.handle(down(fai::vk_left_alt));
+    (void)windows_router.handle(down(fai::vk_left_windows));
+    expect(!windows_router.handle(down('E')).suppress, "Windows-key combination must pass");
 
     fai::InputRouter right_alt_router;
     (void)right_alt_router.handle(down(fai::vk_right_alt));
@@ -113,6 +162,17 @@ void alt_release_starts_new_session() {
            "releasing Alt must reset sequence");
 }
 
+void accent_masks_following_left_alt_release() {
+    fai::InputRouter router;
+    (void)router.handle(down(fai::vk_left_alt));
+    (void)router.handle(down('E'));
+    (void)router.handle(up('E'));
+
+    const auto release = router.handle(up(fai::vk_left_alt));
+    expect(release.suppress && release.mask_left_alt_release,
+           "accent Left Alt release must be replaced by a masked release, not dropped");
+}
+
 void failed_output_restores_fail_open_routing() {
     fai::InputRouter router;
     (void)router.handle(down(fai::vk_left_alt));
@@ -122,6 +182,8 @@ void failed_output_restores_fail_open_routing() {
     router.abort_consumed_key('E');
     expect(!router.handle(up('E')).suppress,
            "keyup must pass after output injection failed and keydown was released");
+    expect(!router.handle(up(fai::vk_left_alt)).suppress,
+           "failed output must not replace the physical Left Alt release");
 }
 
 } // namespace
@@ -129,9 +191,12 @@ void failed_output_restores_fail_open_routing() {
 int main() {
     typeit_sequences_cycle_and_switch();
     single_character_keys_append();
+    all_accent_mappings_are_stable();
+    multi_character_sequences_replace_and_wrap();
     native_shortcuts_and_injected_events_pass();
     unsafe_replacement_is_cancelled();
     alt_release_starts_new_session();
+    accent_masks_following_left_alt_release();
     failed_output_restores_fail_open_routing();
 
     if (failures != 0) {
