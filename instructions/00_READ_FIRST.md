@@ -2,7 +2,7 @@
 
 현재 단계: AUTOMATED_VALIDATION
 현재 담당: CODEX
-현재 전체 상태: 2026-09-18 메모장 synthetic GUI에서 Ctrl-mask 메뉴 재현과 Unicode Backspace 무효를 확인했다. VK 0xE8 mask + 실제 VK_BACK으로 최소 수정했고 output regression RED/GREEN 및 메모장 mapping을 확인했다. 전체 fresh 검증은 진행 중이며 사용자 작업은 없다.
+현재 전체 상태: VK 0xE8 mask + 실제 VK_BACK의 RED/GREEN은 확인했지만, 메모장 빠른 synthetic mapping에서 replacement/순서 failure가 남았다. Alt 즉시 복원을 생략해도 재현됐다. CODEX가 출력 순서 원인을 조사 중이며 사용자 작업은 없다.
 
 ## Codex가 가장 먼저 할 일
 

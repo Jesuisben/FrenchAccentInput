@@ -4,6 +4,8 @@
 
 ## 2026-09-18 현재 증거 — 이전 원인 확정 문구보다 우선
 
+- **현재 자동 blocker:** clean document mapping에서 `æçççéëîœüÿÿÿ`가 한 번 관찰됐다. 60 ms/event로 mapping 3회는 기본 host와 Alt 즉시 복원을 생략한 실험 host에서 각각 정확한 33글자였다. 그러나 무지연 `fast-mapping` 3회는 기본 host에서 순서가 바뀐 38글자, 복원 생략 host에서도 36글자가 나왔다(기대 33글자). 따라서 Alt 복원만의 원인이라고 확정할 수 없고, 아래 단발 mapping 성공은 최종 PASS가 아니다. Unicode/Backspace 소비 순서를 조사한다.
+
 - 시작 기준선: CMakeLists.txt와 scripts/build-release.ps1 수정, tests/win32_output_tests.cpp untracked 상태였다. 기존 변경을 유지했다.
 - 시작 source에서 Release build, CTest 2/2, installer compile을 실행했다. 이것은 이후 수정한 source의 최종 검증이 아니다.
 - 실제 메모장 + 별도 virtual hook host + Computer Use `Alt_L+e`에서 é와 menu access-key UI가 함께 표시됐다. 고정 synthetic driver의 EEEE도 같은 menu UI를 재현했다. driver는 전송 성공, 대상 HWND 유지, Alt/Ctrl/Shift 해제를 확인했다.

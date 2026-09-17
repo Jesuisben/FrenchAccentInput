@@ -1,14 +1,23 @@
 #include <windows.h>
 #include <shellapi.h>
+#include <richedit.h>
 
 #include <cstdlib>
 #include <iostream>
 #include <limits>
+#include <string>
 #include <vector>
 
 namespace {
 std::vector<INPUT> captured_inputs;
 UINT accepted_count = (std::numeric_limits<UINT>::max)();
+HWND test_focus = nullptr;
+HWND WINAPI test_foreground() { return test_focus; }
+BOOL WINAPI test_gui_thread(DWORD, PGUITHREADINFO info) {
+    if (test_focus == nullptr) { return FALSE; }
+    info->hwndFocus = test_focus;
+    return TRUE;
+}
 UINT WINAPI capture_send_input(UINT count, LPINPUT inputs, int size) {
     if (size != sizeof(INPUT)) {
         return 0;
@@ -20,7 +29,11 @@ UINT WINAPI capture_send_input(UINT count, LPINPUT inputs, int size) {
 
 // Production output construction is compiled unchanged; no input reaches Windows.
 #define SendInput capture_send_input
+#define GetForegroundWindow test_foreground
+#define GetGUIThreadInfo test_gui_thread
 #include "../src/main.cpp"
+#undef GetGUIThreadInfo
+#undef GetForegroundWindow
 #undef SendInput
 
 namespace {
@@ -84,10 +97,76 @@ void output_contract() {
                "short masked release must be reported as failure");
     }
 }
+
+void native_editor_replacement() {
+    const HMODULE rich_edit = LoadLibraryW(L"Msftedit.dll");
+    expect(rich_edit != nullptr, "Windows RichEdit library must load");
+    for (const auto* class_name : {L"EDIT", L"RICHEDIT50W"}) {
+        test_focus = CreateWindowExW(0, class_name, L"", WS_POPUP | ES_MULTILINE |
+                                      ES_AUTOVSCROLL | ES_AUTOHSCROLL,
+                                      0, 0, 100, 100, nullptr, nullptr, nullptr, nullptr);
+        expect(test_focus != nullptr, "hidden native edit control must exist");
+        if (test_focus == nullptr) { continue; }
+        accepted_count = (std::numeric_limits<UINT>::max)();
+        expect(send_edit({L'é', false}) == SendStatus::success, "native append succeeds");
+        expect(send_edit({L'è', true}) == SendStatus::success, "native cycle succeeds");
+        wchar_t text[32]{};
+        GetWindowTextW(test_focus, text, 32);
+        expect(std::wstring(text) == L"è", "native replacement must change real control text");
+
+        SendMessageW(test_focus, EM_SETSEL, 0, 0);
+        expect(send_edit({L'ê', true}) != SendStatus::success,
+               "moved caret must reject stale native replacement");
+        GetWindowTextW(test_focus, text, 32);
+        expect(std::wstring(text) == L"è", "stale replacement must not delete or insert text");
+
+        SendMessageW(test_focus, EM_SETREADONLY, TRUE, 0);
+        expect(send_edit({L'é', false}) == SendStatus::blocked,
+               "read-only native control must fail open without editing");
+        SendMessageW(test_focus, EM_SETREADONLY, FALSE, 0);
+
+        SetWindowTextW(test_focus, L"x");
+        SendMessageW(test_focus, EM_SETSEL, 1, 1);
+        SendMessageW(test_focus, EM_LIMITTEXT, 1, 0);
+        if (wcscmp(class_name, L"RICHEDIT50W") == 0) {
+            SendMessageW(test_focus, EM_EXLIMITTEXT, 0, 1);
+        }
+        const auto limited_status = send_edit({L'é', false});
+        if (limited_status == SendStatus::success) {
+            std::wcerr << L"text-limit diagnostic: " << class_name
+                       << L" length=" << GetWindowTextLengthW(test_focus) << L'\n';
+        }
+        expect(limited_status != SendStatus::success,
+               "native text limit must not be mistaken for successful insertion");
+
+        SendMessageW(test_focus, EM_LIMITTEXT, 100000, 0);
+        if (wcscmp(class_name, L"RICHEDIT50W") == 0) {
+            SendMessageW(test_focus, EM_EXLIMITTEXT, 0, 100000);
+        }
+        const std::wstring prefix(70000, L'x');
+        SetWindowTextW(test_focus, prefix.c_str());
+        SendMessageW(test_focus, EM_SETSEL, 70000, 70000);
+        expect(send_edit({L'é', false}) == SendStatus::success, "append beyond 16-bit position");
+        expect(send_edit({L'è', true}) == SendStatus::success, "cycle beyond 16-bit position");
+        std::wstring result(70002, L'\0');
+        const int length = GetWindowTextW(test_focus, result.data(), static_cast<int>(result.size()));
+        result.resize(static_cast<std::size_t>(length));
+        if (result != prefix + L"è") {
+            std::wcerr << L"native long-document diagnostic: " << class_name
+                       << L" length=" << result.size() << L" last="
+                       << (result.empty() ? 0U : static_cast<unsigned>(result.back())) << L'\n';
+        }
+        expect(result == prefix + L"è", "full 32-bit selection must preserve the long prefix");
+        DestroyWindow(test_focus);
+        test_focus = nullptr;
+    }
+    if (rich_edit != nullptr) { FreeLibrary(rich_edit); }
+}
 }
 
 int main() {
     output_contract();
+    native_editor_replacement();
     if (failures != 0) {
         return EXIT_FAILURE;
     }

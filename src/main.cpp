@@ -90,7 +90,72 @@ bool send_virtual_e_cycle() {
     return SendInput(static_cast<UINT>(inputs.size()), inputs.data(), sizeof(INPUT)) == inputs.size();
 }
 
-enum class SendStatus { success, blocked, partial };
+enum class SendStatus { success, blocked, partial, stale };
+
+HWND native_edit_control = nullptr;
+DWORD native_edit_caret = 0;
+
+bool native_selection(HWND control, DWORD& start, DWORD& end) {
+    DWORD_PTR result = 0;
+    return SendMessageTimeoutW(control, EM_GETSEL, reinterpret_cast<WPARAM>(&start),
+                               reinterpret_cast<LPARAM>(&end), SMTO_ABORTIFHUNG | SMTO_BLOCK,
+                               50, &result) != 0;
+}
+
+std::optional<SendStatus> send_native_edit(const fai::Edit& edit, std::vector<INPUT>& inputs) {
+    const HWND foreground = GetForegroundWindow();
+    GUITHREADINFO info{};
+    info.cbSize = sizeof(info);
+    wchar_t class_name[128]{};
+    if (!GetGUIThreadInfo(GetWindowThreadProcessId(foreground, nullptr), &info) ||
+        GetClassNameW(info.hwndFocus, class_name, 128) == 0 ||
+        (_wcsicmp(class_name, L"EDIT") != 0 && _wcsnicmp(class_name, L"RichEdit", 8) != 0)) {
+        native_edit_control = nullptr;
+        return std::nullopt;
+    }
+    const HWND control = info.hwndFocus;
+    DWORD start = 0;
+    DWORD end = 0;
+    if ((GetWindowLongPtrW(control, GWL_STYLE) & ES_READONLY) != 0 ||
+        !IsWindowEnabled(control) || !native_selection(control, start, end)) {
+        return SendStatus::blocked;
+    }
+    if (edit.replace_previous && (control != native_edit_control || start != end ||
+                                   end != native_edit_caret || start == 0)) {
+        native_edit_control = nullptr;
+        return SendStatus::stale;
+    }
+    if (GetForegroundWindow() != foreground) { return SendStatus::blocked; }
+    const DWORD expected_caret = edit.replace_previous ? start : start + 1;
+
+    // RichEdit's keyboard/Unicode paths can overtake one another under load.
+    // Its native selection replacement is synchronous and needs no timing delay.
+    const UINT released = SendInput(3, inputs.data(), sizeof(INPUT));
+    if (released != 3) { return released == 0 ? SendStatus::blocked : SendStatus::partial; }
+    DWORD_PTR ignored = 0;
+    bool selected = true;
+    if (edit.replace_previous) {
+        selected = SendMessageTimeoutW(control, EM_SETSEL, start - 1, end,
+                                       SMTO_ABORTIFHUNG | SMTO_BLOCK, 50, &ignored) != 0;
+    }
+    const wchar_t text[] = {edit.character, L'\0'};
+    const bool edited = selected && SendMessageTimeoutW(control, EM_REPLACESEL, TRUE,
+                         reinterpret_cast<LPARAM>(text), SMTO_ABORTIFHUNG | SMTO_BLOCK,
+                         50, &ignored) != 0;
+    if (!edited && selected && edit.replace_previous) {
+        (void)SendMessageTimeoutW(control, EM_SETSEL, start, end,
+                                 SMTO_ABORTIFHUNG | SMTO_BLOCK, 50, &ignored);
+    }
+    native_edit_control = nullptr;
+    const bool positioned = edited && native_selection(control, start, end) &&
+                            start == end && end == expected_caret;
+    if (positioned) {
+        native_edit_control = control;
+        native_edit_caret = end;
+    }
+    const UINT restored = SendInput(1, &inputs.back(), sizeof(INPUT));
+    return positioned && restored == 1 ? SendStatus::success : SendStatus::partial;
+}
 
 SendStatus send_edit(const fai::Edit& edit) {
     std::vector<INPUT> inputs;
@@ -111,6 +176,9 @@ SendStatus send_edit(const fai::Edit& edit) {
 
     inputs.push_back(marked_virtual_key_input(VK_LMENU, 0));
 
+    if (const auto native_status = send_native_edit(edit, inputs)) {
+        return *native_status;
+    }
     const UINT sent = SendInput(static_cast<UINT>(inputs.size()), inputs.data(), sizeof(INPUT));
     if (sent == inputs.size()) {
         return SendStatus::success;
@@ -208,16 +276,26 @@ LRESULT CALLBACK keyboard_proc(int code, WPARAM message, LPARAM event_data) {
 
     const bool injected = data->dwExtraInfo == injection_marker ||
                           (!allow_virtual_keyboard_input && (data->flags & LLKHF_INJECTED) != 0);
+    const HWND foreground = GetForegroundWindow();
+    GUITHREADINFO focus{};
+    focus.cbSize = sizeof(focus);
+    const bool has_focus = GetGUIThreadInfo(GetWindowThreadProcessId(foreground, nullptr), &focus) &&
+                           focus.hwndFocus != nullptr;
     const fai::KeyEvent event{
         .virtual_key = data->vkCode,
         .key_down = key_down,
         .injected = injected,
-        .target = reinterpret_cast<std::uintptr_t>(GetForegroundWindow()),
+        .target = reinterpret_cast<std::uintptr_t>(has_focus ? focus.hwndFocus : foreground),
     };
-    const auto route = router.handle(event);
+    auto route = router.handle(event);
 
     if (route.edit) {
-        const auto status = send_edit(*route.edit);
+        auto status = send_edit(*route.edit);
+        if (status == SendStatus::stale) {
+            router.cancel_sequence();
+            route = router.handle(event);
+            status = route.edit ? send_edit(*route.edit) : SendStatus::blocked;
+        }
         if (status == SendStatus::blocked) {
             router.abort_consumed_key(data->vkCode);
             (void)PostMessageW(hidden_window, input_warning_message, 0, 0);

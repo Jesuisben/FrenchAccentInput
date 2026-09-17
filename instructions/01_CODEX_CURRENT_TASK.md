@@ -7,6 +7,7 @@ actual hook과 virtual Left Alt keyboard event가 foreground target에 만드는
 ## 지금 할 일
 
 1. `src/main.cpp`는 VK 0xE8 mask와 실제 VK_BACK으로 수정됐다. 두 변경 각각 output test RED/GREEN과 메모장 synthetic GUI 차이를 확인했다. Ctrl-mask/Unicode Backspace로 되돌리지 않는다.
+   - 그러나 clean document mapping에서 `æçççéëîœüÿÿÿ`가 관찰됐다. 60 ms 간격 3회 재검증은 양쪽 모두 성공했지만, `fast-mapping` 3회는 기본 host와 Alt 복원 생략 실험 host 모두 실패했다. 아직 해결되지 않은 자동 blocker다. 단순히 Alt 복원을 제거하는 변경은 채택하지 않는다.
 2. `tests/virtual_keyboard_driver.cpp`는 지정 HWND가 foreground일 때만 고정 synthetic 입력을 보낸다. `e-cycle`은 ë 한 글자, `mapping`은 æçççëîœüÿÿÿ를 추가해야 한다. production과 같은 source의 `FrenchAccentInputVirtualKeyboardHost`를 유지한 상태에서 실행하고 Computer Use로 최종 표시를 읽는다. 이 host는 injected event 허용 차이가 있으므로 물리 PASS가 아니다.
 3. 메모장 clean field, browser, VS Code에서 mapping/cycle/일반 입력/UI 복귀를 추가 검증한다. partial SendInput 복구, focus/caret 변경, injected 외부 입력 이후 stale replacement, shortcut 비간섭의 source/test 누락을 점검하고 regression으로 보완한다.
 4. 최종 수정 뒤 warning-as-error Release, 전체 CTest, standalone lifecycle/duplicate/quit, installer install/run/exit/uninstall, 설치 폴더·registry 정리, SHA-256을 모두 fresh 검증한다.

@@ -6,6 +6,8 @@
 
 ## 2026-09-18: 실제 메모장 synthetic 경로에서 두 failure 분리
 
+- 후속 자동 blocker: 수정 후 clean field에서 extra é가 관찰됐고, `fast-mapping` 3회에서 기대 33글자 대신 기본 host 38글자/Alt 복원 생략 host 36글자가 표시됐다. 단발·60 ms/event의 성공만으로 안정성을 주장하지 않는다. output 순서 원인은 조사 중이다.
+
 - 직접 관찰: production과 같은 source의 virtual host에서 Alt+E 후 é와 access-key UI가 함께 나타났다. 고정 EEEE driver도 재현했다. 전송 성공, foreground HWND 유지, modifier 해제 여부를 따로 확인했다.
 - hook 경계: driver/output 자체 marker에 한정한 계측에서 E 이벤트 suppress와 VK_PACKET 출력을 확인했다. 일반 입력은 기록하지 않았다.
 - menu 원인 범위: Ctrl-mask만으로 Windows 11 메모장의 access-key UI를 취소하지 못했다. Ctrl로 Alt DOWN까지 감싸도 실패했다. Alt DOWN을 보류하는 진단에서는 메뉴가 사라졌지만 native shortcut 재전달이 필요하므로 제품에 채택하지 않았다.

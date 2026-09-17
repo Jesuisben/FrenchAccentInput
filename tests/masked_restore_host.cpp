@@ -3,7 +3,12 @@
 #include <cstdio>
 
 HOOKPROC observed_keyboard_proc = nullptr;
+unsigned output_depth = 0;
 LRESULT CALLBACK observe_keyboard(int code, WPARAM message, LPARAM parameter) {
+    if (code >= 0 && output_depth != 0 &&
+        reinterpret_cast<const KBDLLHOOKSTRUCT*>(parameter)->dwExtraInfo == 0x46414932) {
+        std::fprintf(stderr, "REENTRANT driver event during output depth=%u\n", output_depth);
+    }
     const LRESULT result = observed_keyboard_proc(code, message, parameter);
     if (code >= 0) {
         const auto* event = reinterpret_cast<const KBDLLHOOKSTRUCT*>(parameter);
@@ -26,17 +31,37 @@ HHOOK WINAPI observed_hook(int type, HOOKPROC proc, HINSTANCE instance, DWORD th
     return SetWindowsHookExW(type, proc, instance, thread);
 }
 
-// Diagnostic experiment: omit immediate Alt restoration after output. This is
-// not a product candidate until native shortcuts can restore Alt on demand.
+// Diagnostic experiment: use synchronous native RichEdit editing, retaining
+// production's modifier sequence. Other targets keep the original SendInput.
 UINT WINAPI masked_restore_send_input(UINT count, LPINPUT inputs, int size) {
-    std::vector<INPUT> experiment(inputs, inputs + count);
-    if (!experiment.empty() && experiment.back().ki.dwExtraInfo == 0x46414931 &&
-        experiment.back().ki.wVk == VK_LMENU && experiment.back().ki.dwFlags == 0) {
-        experiment.pop_back();
+    GUITHREADINFO info{};
+    info.cbSize = sizeof(info);
+    wchar_t name[128]{};
+    const HWND foreground = GetForegroundWindow();
+    if ((count != 6 && count != 8) ||
+        !GetGUIThreadInfo(GetWindowThreadProcessId(foreground, nullptr), &info) ||
+        GetClassNameW(info.hwndFocus, name, 128) == 0 ||
+        wcsncmp(name, L"RichEdit", 8) != 0) {
+        return SendInput(count, inputs, size);
     }
-    if (experiment.empty()) { return count; }
-    const UINT sent = SendInput(static_cast<UINT>(experiment.size()), experiment.data(), size);
-    return sent == experiment.size() ? count : 0;
+    if (SendInput(3, inputs, size) != 3) { return 0; }
+    DWORD_PTR selection = 0;
+    if (!SendMessageTimeoutW(info.hwndFocus, EM_GETSEL, 0, 0,
+                             SMTO_ABORTIFHUNG | SMTO_BLOCK, 100, &selection)) { return 0; }
+    const WORD start = LOWORD(selection);
+    const WORD end = HIWORD(selection);
+    if (count == 8 && start == end && start != 0) {
+        DWORD_PTR ignored = 0;
+        if (!SendMessageTimeoutW(info.hwndFocus, EM_SETSEL, start - 1, end,
+                                 SMTO_ABORTIFHUNG | SMTO_BLOCK, 100, &ignored)) { return 0; }
+    }
+    const wchar_t text[] = {static_cast<wchar_t>(inputs[count - 3].ki.wScan), L'\0'};
+    DWORD_PTR ignored = 0;
+    const bool edited = SendMessageTimeoutW(info.hwndFocus, EM_REPLACESEL, TRUE,
+                         reinterpret_cast<LPARAM>(text), SMTO_ABORTIFHUNG | SMTO_BLOCK,
+                         100, &ignored) != 0;
+    const UINT restored = SendInput(1, &inputs[count - 1], size);
+    return edited && restored == 1 ? count : 0;
 }
 
 #define SendInput masked_restore_send_input
