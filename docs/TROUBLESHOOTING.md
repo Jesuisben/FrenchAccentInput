@@ -4,6 +4,17 @@
 
 문제의 증상, 직접 원인, 확인 근거, 수정, 재검증을 순서대로 남긴다. 예상과 실제 실행 결과를 섞지 않는다.
 
+## 2026-09-18: 실제 메모장 synthetic 경로에서 두 failure 분리
+
+- 직접 관찰: production과 같은 source의 virtual host에서 Alt+E 후 é와 access-key UI가 함께 나타났다. 고정 EEEE driver도 재현했다. 전송 성공, foreground HWND 유지, modifier 해제 여부를 따로 확인했다.
+- hook 경계: driver/output 자체 marker에 한정한 계측에서 E 이벤트 suppress와 VK_PACKET 출력을 확인했다. 일반 입력은 기록하지 않았다.
+- menu 원인 범위: Ctrl-mask만으로 Windows 11 메모장의 access-key UI를 취소하지 못했다. Ctrl로 Alt DOWN까지 감싸도 실패했다. Alt DOWN을 보류하는 진단에서는 메뉴가 사라졌지만 native shortcut 재전달이 필요하므로 제품에 채택하지 않았다.
+- 최소 수정: 기존 Alt 전환을 유지하고 Ctrl 대신 unassigned VK 0xE8 non-modifier로 mask했다. 동일 메모장 고정 synthetic EEEE에서 menu UI 없이 ë 한 글자가 추가됐다. 이는 이 환경의 synthetic 재현에 대한 근거이며 실제 physical failure 전체의 해결을 단정하지 않는다.
+- replacement 원인: Unicode U+0008/VK_PACKET은 이 메모장에서 실제 Backspace 삭제가 되지 않아 EEEE가 4글자로 누적됐다. masked Alt UP을 유지한 대조에서도 동일했다. `VK_BACK` down/up으로 수정 후 한 글자로 순환했다.
+- regression: 실제 Backspace 계약은 변경 전 2개 assertion FAIL 후 GREEN, non-modifier mask 계약은 변경 전 6개 assertion FAIL 후 GREEN. 기존 input core는 유지했다.
+- 근거 문서: [Microsoft Virtual-Key Codes](https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes), [AutoHotkey 공식 menu mask 설명](https://github.com/AutoHotkey/AutoHotkeyDocs/blob/v2/docs/lib/A_MenuMaskKey.htm). 0xE8은 현재 unassigned이며 향후 Windows 변경 시 재검증한다.
+- 아래 2026-09-17의 Ctrl-mask root-cause/해결 기록은 이전 source의 가설과 검증 범위다. 최신 재현이 이를 supersede한다. 최종 Release·installer·대표 앱·물리 검증은 아직 완료하지 않았다.
+
 ## 2026-09-17: 실제 물리 Left Alt accent 입력이 간헐적으로 실패함
 
 - 증상: Windows 11 실제 물리 Left Alt를 누른 채 E를 입력하면 `é`가 입력될 때와 아닐 때가 있고, accent 입력 중 menu/access-key UI가 간헐적으로 활성화됐다. 같은 Alt session의 E 반복도 직전 문자를 교체하지 못하는 경우가 있었다.

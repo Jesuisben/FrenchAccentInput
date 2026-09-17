@@ -19,6 +19,17 @@ endif()
 
 add_test(NAME input_core COMMAND fai_tests)
 
+# Compile production output code with a recording SendInput replacement. This test
+# never injects input or changes the active desktop.
+add_executable(fai_output_tests tests/win32_output_tests.cpp)
+target_compile_features(fai_output_tests PRIVATE cxx_std_20)
+target_compile_definitions(fai_output_tests PRIVATE UNICODE _UNICODE WIN32_LEAN_AND_MEAN _WIN32_WINNT=0x0A00)
+target_link_libraries(fai_output_tests PRIVATE fai_core user32 shell32)
+if(MSVC)
+  target_compile_options(fai_output_tests PRIVATE /W4 /WX /permissive- /utf-8)
+endif()
+add_test(NAME win32_output_contract COMMAND fai_output_tests)
+
 # WIN32 옵션은 console 창이 없는 GUI subsystem 실행 파일을 만든다.
 add_executable(FrenchAccentInput WIN32 src/main.cpp resources/version.rc)
 target_compile_features(FrenchAccentInput PRIVATE cxx_std_20)
@@ -37,4 +48,22 @@ target_link_libraries(FrenchAccentInputVirtualKeyboardHost PRIVATE fai_core user
 
 if(MSVC)
   target_compile_options(FrenchAccentInputVirtualKeyboardHost PRIVATE /W4 /WX /permissive- /utf-8)
+endif()
+
+# Explicitly invoked only: this driver sends fixed synthetic integration input.
+# It is not a CTest and is never copied to dist.
+add_executable(fai_virtual_driver tests/virtual_keyboard_driver.cpp)
+target_compile_features(fai_virtual_driver PRIVATE cxx_std_20)
+target_compile_definitions(fai_virtual_driver PRIVATE UNICODE _UNICODE WIN32_LEAN_AND_MEAN)
+target_link_libraries(fai_virtual_driver PRIVATE user32)
+if(MSVC)
+  target_compile_options(fai_virtual_driver PRIVATE /W4 /WX /permissive- /utf-8)
+endif()
+
+add_executable(fai_masked_restore_host WIN32 tests/masked_restore_host.cpp)
+target_compile_features(fai_masked_restore_host PRIVATE cxx_std_20)
+target_compile_definitions(fai_masked_restore_host PRIVATE FAI_TEST_ALLOW_INJECTED UNICODE _UNICODE WIN32_LEAN_AND_MEAN _WIN32_WINNT=0x0A00)
+target_link_libraries(fai_masked_restore_host PRIVATE fai_core user32 shell32)
+if(MSVC)
+  target_compile_options(fai_masked_restore_host PRIVATE /W4 /WX /permissive- /utf-8)
 endif()

@@ -28,7 +28,7 @@ $CTest = Join-Path (Split-Path -Parent $CMake) 'ctest.exe'
 & $CMake -S . -B build -G 'Visual Studio 18 2026' -A x64
 if ($LASTEXITCODE -ne 0) { throw 'CMake configure 실패' }
 
-& $CMake --build build --config Release --target FrenchAccentInput fai_tests
+& $CMake --build build --config Release --target FrenchAccentInput fai_tests fai_output_tests
 if ($LASTEXITCODE -ne 0) { throw 'Release build 실패' }
 
 & $CTest --test-dir build -C Release --output-on-failure

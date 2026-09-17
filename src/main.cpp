@@ -20,6 +20,9 @@ constexpr wchar_t window_class_name[] = L"FrenchAccentInput.HiddenWindow";
 constexpr wchar_t mutex_name[] = L"Local\\FrenchAccentInput-4A67FCE1-5DC0-4ACB-9843-9672E4CBE071";
 #endif
 constexpr ULONG_PTR injection_marker = 0x46414931;
+// 0xE8 is unassigned by Windows. A non-modifier cancels modern access-key mode;
+// Ctrl alone did not cancel it in Windows 11 Notepad integration tests.
+constexpr WORD menu_mask_key = 0xE8;
 constexpr UINT tray_icon_id = 1;
 constexpr UINT tray_callback_message = WM_APP + 1;
 constexpr UINT input_warning_message = WM_APP + 2;
@@ -65,10 +68,10 @@ INPUT marked_virtual_key_input(WORD virtual_key, DWORD flags) {
 }
 
 void append_masked_alt_up(std::vector<INPUT>& inputs) {
-    // Ctrl를 함께 누르면 Alt up이 WM_SYSKEYUP/SC_KEYMENU 경로로 가지 않는다.
-    inputs.push_back(marked_virtual_key_input(VK_LCONTROL, 0));
+    // The mask supplies an intervening non-modifier before releasing Alt.
+    inputs.push_back(marked_virtual_key_input(menu_mask_key, 0));
     inputs.push_back(marked_virtual_key_input(VK_LMENU, KEYEVENTF_KEYUP));
-    inputs.push_back(marked_virtual_key_input(VK_LCONTROL, KEYEVENTF_KEYUP));
+    inputs.push_back(marked_virtual_key_input(menu_mask_key, KEYEVENTF_KEYUP));
 }
 
 bool send_virtual_e_cycle() {
@@ -96,11 +99,12 @@ SendStatus send_edit(const fai::Edit& edit) {
     append_masked_alt_up(inputs);
 
     if (edit.replace_previous) {
-        inputs.push_back(unicode_input(L'\b', 0));
-        inputs.push_back(unicode_input(L'\b', KEYEVENTF_KEYUP));
+        // U+0008 via VK_PACKET is not a Backspace key in modern text controls.
+        inputs.push_back(marked_virtual_key_input(VK_BACK, 0));
+        inputs.push_back(marked_virtual_key_input(VK_BACK, KEYEVENTF_KEYUP));
     }
 
-    // 물리 Left Alt는 건드리지 않는다. synthetic Alt key-up은 target의 SC_KEYMENU를 유발할 수 있다.
+    // Alt is temporarily released above and restored below for native shortcuts.
     // KEYEVENTF_UNICODE는 현재 keyboard layout과 무관하게 UTF-16 문자를 전달한다.
     inputs.push_back(unicode_input(edit.character, 0));
     inputs.push_back(unicode_input(edit.character, KEYEVENTF_KEYUP));

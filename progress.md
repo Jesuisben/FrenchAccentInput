@@ -1,6 +1,19 @@
 # FrenchAccentInput 진행 기록
 
-마지막 갱신: 2026-09-17
+마지막 갱신: 2026-09-18
+
+## 2026-09-18 현재 증거 — 이전 원인 확정 문구보다 우선
+
+- 시작 기준선: CMakeLists.txt와 scripts/build-release.ps1 수정, tests/win32_output_tests.cpp untracked 상태였다. 기존 변경을 유지했다.
+- 시작 source에서 Release build, CTest 2/2, installer compile을 실행했다. 이것은 이후 수정한 source의 최종 검증이 아니다.
+- 실제 메모장 + 별도 virtual hook host + Computer Use `Alt_L+e`에서 é와 menu access-key UI가 함께 표시됐다. 고정 synthetic driver의 EEEE도 같은 menu UI를 재현했다. driver는 전송 성공, 대상 HWND 유지, Alt/Ctrl/Shift 해제를 확인했다.
+- 자체 marker의 고정 synthetic event만 계측해 E down/up이 hook에서 suppress되고 output VK_PACKET이 전달되는 것을 확인했다. 일반 사용자 입력·창 제목은 로그에 저장하지 않았다.
+- Ctrl로 restored Alt DOWN까지 감싸는 대조 실험도 실패했다. initial/restored Alt DOWN을 보류하는 진단에서는 menu UI가 사라졌지만 EEEE가 4글자 추가됐다. masked Alt UP을 유지해도 Unicode U+0008은 삭제되지 않았다.
+- `VK_BACK` down/up으로 바꾸자 EEEE가 한 글자 ë로 교체됐다. output test는 변경 전 2개 assertion FAIL, 수정 후 PASS였다.
+- Ctrl 대신 unassigned non-modifier VK 0xE8을 mask로 사용하면 기존 Alt 전환 구조에서도 menu UI가 사라졌다. 해당 output regression은 변경 전 6개 assertion FAIL, 수정 후 PASS였다. 대규모 router 재작성은 하지 않았다.
+- 수정 production source로 build한 virtual host에서 mapping sequence AAACCCEEEEIIOOUUUYYY를 입력했다. 메모장 총 글자 수가 11에서 22로 증가했고 추가 부분은 æçççëîœüÿÿÿ였다. menu UI가 없고 driver의 modifier release 검사도 PASS했다. clean field 및 다른 앱 재검증은 진행 중이다.
+- 이 증거는 synthetic hook integration과 화면 관찰이다. 실제 물리 keyboard, typematic, Korean IME PASS는 아직 없다. 아래 2026-09-17의 원인 확정/해결 문구는 당시 가설과 이전 source 기록이며 최종 해결 증거가 아니다.
+- 전체 fresh 검증, partial output 복구·stale replacement 점검이 남아 있다. 현재 CODEX 단계이며 사용자 작업은 없다.
 
 ## 현재 목표
 

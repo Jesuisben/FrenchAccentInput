@@ -2,7 +2,7 @@
 
 현재 단계: AUTOMATED_VALIDATION
 현재 담당: CODEX
-현재 전체 상태: Ctrl-mask Alt 보정 source와 fresh Release/build/installer 검증 완료. virtual keyboard foreground target text 검증을 계속하며 사용자 물리 작업은 요청하지 않는다.
+현재 전체 상태: 2026-09-18 메모장 synthetic GUI에서 Ctrl-mask 메뉴 재현과 Unicode Backspace 무효를 확인했다. VK 0xE8 mask + 실제 VK_BACK으로 최소 수정했고 output regression RED/GREEN 및 메모장 mapping을 확인했다. 전체 fresh 검증은 진행 중이며 사용자 작업은 없다.
 
 ## Codex가 가장 먼저 할 일
 
