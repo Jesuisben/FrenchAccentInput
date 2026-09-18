@@ -4,6 +4,16 @@
 
 문제의 증상, 직접 원인, 확인 근거, 수정, 재검증을 순서대로 남긴다. 예상과 실제 실행 결과를 섞지 않는다.
 
+## 2026-09-18: 외부 injected 입력과 부분 출력의 상태 복구
+
+- 원인: keyboard hook은 자체 출력과 외부 injected event를 모두 무시했다. mouse hook도 injected click을 무시했다. 따라서 외부 입력으로 문서나 caret가 바뀌어도 이전 문자 교체 상태가 남았다.
+- regression: production callback 호출 뒤 core의 다음 E가 새 é인지 검사했다. 외부 keyboard와 mouse 2 assertion FAIL 후, 외부 입력만 sequence를 취소하도록 수정하여 GREEN. 자체 marker 출력은 sequence를 유지하고 추가 output을 만들지 않는다.
+- 별도 원인: SendInput의 부분 성공은 보고만 하고 accepted prefix의 미해제 키를 정리하지 않았다. fault injection으로 mask/Backspace/Unicode 키와 Alt 상태의 13 assertion FAIL을 확인했다.
+- 수정: 이미 전달된 prefix에서 key-up이 없는 synthetic key를 해제하고 Alt 목표 상태를 복구한다. 텍스트·Backspace key-down을 재전송하지 않는다. native 교체 후 Alt 복원 호출 실패도 2 assertion FAIL 후 best-effort 복구를 추가했다.
+- 한계: Windows가 복구 전송도 거부할 수 있다. 무한 재시도하지 않으며 partial을 success로 바꾸지 않는다. 실제 입력 차단 환경의 성공 보장은 아니다.
+- 근거: [Microsoft SendInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput)은 전송 개수, 직렬 삽입, 기존 keyboard state 비초기화를 명시한다.
+- 재검증: Release product/output-test build 및 CTest 2/2 PASS. 최종 GUI·물리 검증은 별도다.
+
 ## 2026-09-18: 실제 메모장 synthetic 경로에서 두 failure 분리
 
 - 후속 자동 blocker: 수정 후 clean field에서 extra é가 관찰됐고, `fast-mapping` 3회에서 기대 33글자 대신 기본 host 38글자/Alt 복원 생략 host 36글자가 표시됐다. 단발·60 ms/event의 성공만으로 안정성을 주장하지 않는다. output 순서 원인은 조사 중이다.

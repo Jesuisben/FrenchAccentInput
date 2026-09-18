@@ -92,6 +92,41 @@ bool send_virtual_e_cycle() {
 
 enum class SendStatus { success, blocked, partial, stale };
 
+void recover_partial_input(const INPUT* inputs, UINT sent, bool hold_alt) {
+    std::vector<INPUT> recovery;
+    bool alt_down = true;
+    for (UINT i = 0; i < sent; ++i) {
+        const auto& key = inputs[i].ki;
+        if (key.wVk == VK_LMENU) {
+            alt_down = (key.dwFlags & KEYEVENTF_KEYUP) == 0;
+            continue;
+        }
+        if ((key.dwFlags & KEYEVENTF_KEYUP) != 0) { continue; }
+        bool released = false;
+        for (UINT j = i + 1; j < sent; ++j) {
+            const auto& next = inputs[j].ki;
+            if (next.wVk == key.wVk && next.wScan == key.wScan &&
+                (next.dwFlags & KEYEVENTF_KEYUP) != 0) {
+                released = true;
+                break;
+            }
+        }
+        if (!released) {
+            auto up = inputs[i];
+            up.ki.dwFlags |= KEYEVENTF_KEYUP;
+            recovery.push_back(up);
+        }
+    }
+    if (alt_down != hold_alt) {
+        recovery.push_back(marked_virtual_key_input(VK_LMENU, hold_alt ? 0 : KEYEVENTF_KEYUP));
+    }
+    // Best effort only: Windows may also block recovery. Never replay text or
+    // Backspace, and keep the original failure visible to the caller.
+    if (!recovery.empty()) {
+        (void)SendInput(static_cast<UINT>(recovery.size()), recovery.data(), sizeof(INPUT));
+    }
+}
+
 HWND native_edit_control = nullptr;
 DWORD native_edit_caret = 0;
 
@@ -125,13 +160,28 @@ std::optional<SendStatus> send_native_edit(const fai::Edit& edit, std::vector<IN
         native_edit_control = nullptr;
         return SendStatus::stale;
     }
+    if (!edit.replace_previous && start == end) {
+        DWORD_PTR limit = 0;
+        DWORD_PTR length = 0;
+        // EM_REPLACESEL can bypass RichEdit's typing limit. Honor that limit
+        // without reading or retaining the document's contents.
+        if (!SendMessageTimeoutW(control, EM_GETLIMITTEXT, 0, 0,
+                                 SMTO_ABORTIFHUNG | SMTO_BLOCK, 50, &limit) ||
+            !SendMessageTimeoutW(control, WM_GETTEXTLENGTH, 0, 0,
+                                 SMTO_ABORTIFHUNG | SMTO_BLOCK, 50, &length) || length >= limit) {
+            return SendStatus::blocked;
+        }
+    }
     if (GetForegroundWindow() != foreground) { return SendStatus::blocked; }
     const DWORD expected_caret = edit.replace_previous ? start : start + 1;
 
     // RichEdit's keyboard/Unicode paths can overtake one another under load.
     // Its native selection replacement is synchronous and needs no timing delay.
     const UINT released = SendInput(3, inputs.data(), sizeof(INPUT));
-    if (released != 3) { return released == 0 ? SendStatus::blocked : SendStatus::partial; }
+    if (released != 3) {
+        if (released != 0) { recover_partial_input(inputs.data(), released, true); }
+        return released == 0 ? SendStatus::blocked : SendStatus::partial;
+    }
     DWORD_PTR ignored = 0;
     bool selected = true;
     if (edit.replace_previous) {
@@ -154,6 +204,7 @@ std::optional<SendStatus> send_native_edit(const fai::Edit& edit, std::vector<IN
         native_edit_caret = end;
     }
     const UINT restored = SendInput(1, &inputs.back(), sizeof(INPUT));
+    if (restored != 1) { recover_partial_input(inputs.data(), 3, true); }
     return positioned && restored == 1 ? SendStatus::success : SendStatus::partial;
 }
 
@@ -187,6 +238,7 @@ SendStatus send_edit(const fai::Edit& edit) {
         return SendStatus::blocked;
     }
 
+    recover_partial_input(inputs.data(), sent, true);
     return SendStatus::partial;
 }
 
@@ -195,6 +247,9 @@ SendStatus send_masked_alt_release() {
     inputs.reserve(3U);
     append_masked_alt_up(inputs);
     const UINT sent = SendInput(static_cast<UINT>(inputs.size()), inputs.data(), sizeof(INPUT));
+    if (sent != 0 && sent != inputs.size()) {
+        recover_partial_input(inputs.data(), sent, false);
+    }
     return sent == inputs.size() ? SendStatus::success : (sent == 0 ? SendStatus::blocked : SendStatus::partial);
 }
 
@@ -276,6 +331,14 @@ LRESULT CALLBACK keyboard_proc(int code, WPARAM message, LPARAM event_data) {
 
     const bool injected = data->dwExtraInfo == injection_marker ||
                           (!allow_virtual_keyboard_input && (data->flags & LLKHF_INJECTED) != 0);
+    if (injected) {
+        // Other software can type or move the caret. Never replace across it.
+        // Our own output must leave the active cycle intact and cannot recurse.
+        if (data->dwExtraInfo != injection_marker) {
+            router.cancel_sequence();
+        }
+        return CallNextHookEx(keyboard_hook, code, message, event_data);
+    }
     const HWND foreground = GetForegroundWindow();
     GUITHREADINFO focus{};
     focus.cbSize = sizeof(focus);
@@ -290,6 +353,15 @@ LRESULT CALLBACK keyboard_proc(int code, WPARAM message, LPARAM event_data) {
     auto route = router.handle(event);
 
     if (route.edit) {
+        // A modifier can predate hook installation or come from other software.
+        // Query only other keys: the current callback's key state is not updated yet.
+        for (const int modifier : {VK_LCONTROL, VK_RCONTROL, VK_LSHIFT, VK_RSHIFT,
+                                   VK_LWIN, VK_RWIN, VK_RMENU}) {
+            if ((GetAsyncKeyState(modifier) & 0x8000) != 0) {
+                router.abort_consumed_key(data->vkCode);
+                return CallNextHookEx(keyboard_hook, code, message, event_data);
+            }
+        }
         auto status = send_edit(*route.edit);
         if (status == SendStatus::stale) {
             router.cancel_sequence();
@@ -322,12 +394,10 @@ LRESULT CALLBACK keyboard_proc(int code, WPARAM message, LPARAM event_data) {
 
 LRESULT CALLBACK mouse_proc(int code, WPARAM message, LPARAM event_data) {
     if (code >= 0) {
-        const auto* data = reinterpret_cast<const MSLLHOOKSTRUCT*>(event_data);
-        const bool injected = (data->flags & LLMHF_INJECTED) != 0;
         const bool changes_caret = message == WM_LBUTTONDOWN || message == WM_RBUTTONDOWN ||
                                    message == WM_MBUTTONDOWN || message == WM_XBUTTONDOWN ||
                                    message == WM_MOUSEWHEEL || message == WM_MOUSEHWHEEL;
-        if (!injected && changes_caret) {
+        if (changes_caret) {
             router.cancel_sequence();
         }
     }

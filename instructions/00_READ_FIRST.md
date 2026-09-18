@@ -2,7 +2,7 @@
 
 현재 단계: AUTOMATED_VALIDATION
 현재 담당: CODEX
-현재 전체 상태: VK 0xE8 mask + 실제 VK_BACK의 RED/GREEN은 확인했지만, 메모장 빠른 synthetic mapping에서 replacement/순서 failure가 남았다. Alt 즉시 복원을 생략해도 재현됐다. CODEX가 출력 순서 원인을 조사 중이며 사용자 작업은 없다.
+현재 전체 상태: native EDIT/RichEdit 동기 교체 경로가 구현됐다. 외부 injected 입력·클릭의 stale 상태 취소와 부분 SendInput의 키 해제·Alt 복구를 RED/GREEN으로 보완했다. 현재 Release build와 CTest 2/2는 통과했지만, 최종 source의 대표 앱 GUI·lifecycle·installer 전체 fresh 검증은 아직 남았다. 사용자 작업은 없다.
 
 ## Codex가 가장 먼저 할 일
 

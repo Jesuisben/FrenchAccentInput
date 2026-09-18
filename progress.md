@@ -4,7 +4,12 @@
 
 ## 2026-09-18 현재 증거 — 이전 원인 확정 문구보다 우선
 
-- **현재 자동 blocker:** clean document mapping에서 `æçççéëîœüÿÿÿ`가 한 번 관찰됐다. 60 ms/event로 mapping 3회는 기본 host와 Alt 즉시 복원을 생략한 실험 host에서 각각 정확한 33글자였다. 그러나 무지연 `fast-mapping` 3회는 기본 host에서 순서가 바뀐 38글자, 복원 생략 host에서도 36글자가 나왔다(기대 33글자). 따라서 Alt 복원만의 원인이라고 확정할 수 없고, 아래 단발 mapping 성공은 최종 PASS가 아니다. Unicode/Backspace 소비 순서를 조사한다.
+- **현재 상태:** native EDIT/RichEdit에는 동기 선택 교체 경로가 구현돼 있다. 최신 source의 최종 대표 앱 GUI·installer·lifecycle 검증은 아직 남았다. 아래 fast-mapping 실패는 이전 generic 경로에서 얻은 증거이며 현재 native 경로의 최종 결과로 취급하지 않는다.
+- 2026-09-18 재개 기준선은 `src/main.cpp` 수정 상태였다. 기존 변경을 보존했다. Git 상태를 바꾸는 명령은 수행하지 않았다.
+- 외부 injected keyboard와 injected mouse click을 기존 hook이 무시하여 순환 상태가 남는 결함을 regression으로 재현했다(2 assertion FAIL). 외부 입력은 취소하고 자체 marker 출력은 유지하도록 수정했다. 수정 후 CTest 2/2 PASS. 실제 desktop input 없이 production callback과 core를 실행한 검사다.
+- 부분 SendInput에서 mask/Backspace/Unicode key-down과 임시 Alt release가 복구되지 않는 결함을 accepted-prefix fault injection으로 재현했다(13 assertion FAIL). 이미 전달된 문자를 재입력하거나 Backspace를 반복하지 않고 미해제 synthetic key와 Alt 상태만 best-effort 복구한다. native EDIT/RichEdit의 마지막 Alt 복원 실패도 2 assertion FAIL 후 수정했다. 복구가 성공해도 원래 partial 결과를 유지한다.
+- 위 수정 후 warning-as-error Release product/output-test build와 전체 CTest 2/2 PASS(실패 0). 이 결과는 GUI·물리 keyboard·설치 검증의 대체물이 아니다.
+- **이전 자동 blocker:** clean document mapping에서 `æçççéëîœüÿÿÿ`가 한 번 관찰됐다. 60 ms/event로 mapping 3회는 기본 host와 Alt 즉시 복원을 생략한 실험 host에서 각각 정확한 33글자였다. 그러나 무지연 `fast-mapping` 3회는 기본 host에서 순서가 바뀐 38글자, 복원 생략 host에서도 36글자가 나왔다(기대 33글자). 따라서 Alt 복원만의 원인이라고 확정할 수 없고, 아래 단발 mapping 성공은 최종 PASS가 아니다.
 
 - 시작 기준선: CMakeLists.txt와 scripts/build-release.ps1 수정, tests/win32_output_tests.cpp untracked 상태였다. 기존 변경을 유지했다.
 - 시작 source에서 Release build, CTest 2/2, installer compile을 실행했다. 이것은 이후 수정한 source의 최종 검증이 아니다.
