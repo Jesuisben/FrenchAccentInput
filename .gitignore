@@ -1,0 +1,16 @@
+# Build artifacts
+/build/
+/dist/
+/out/
+
+# Local IDE state
+/.vs/
+/.vscode/
+*.user
+*.suo
+
+# Local-only documents and physical QA records
+/local-only/
+
+# Logs
+*.log
