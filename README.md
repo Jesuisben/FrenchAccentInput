@@ -11,7 +11,7 @@ French Accent Input is a Windows 11 x64 utility for typing French accented lette
 For most users, the installer is the easiest option.
 
 1. Open the [latest Release page](https://github.com/Jesuisben/FrenchAccentInput/releases/latest).
-2. Under **Assets**, download `FrenchAccentInput-Setup-1.1.0.exe`.
+2. Under **Assets**, download `FrenchAccentInput-Setup-1.1.1.exe`.
 3. Double-click the downloaded installer and follow the setup steps.
 4. After installation, launch **French Accent Input**. Closing the usage window does not exit the app; it continues running in the Windows notification area.
 
@@ -24,7 +24,7 @@ For most users, the installer is the easiest option.
 일반 사용자는 설치 프로그램을 사용하는 것이 가장 간단합니다.
 
 1. [최신 Release 페이지](https://github.com/Jesuisben/FrenchAccentInput/releases/latest)를 엽니다.
-2. **Assets**에서 `FrenchAccentInput-Setup-1.1.0.exe`를 다운로드합니다.
+2. **Assets**에서 `FrenchAccentInput-Setup-1.1.1.exe`를 다운로드합니다.
 3. 다운로드한 설치 파일을 더블 클릭하고 안내에 따라 설치합니다.
 4. 설치 후 **French Accent Input**을 실행합니다. 사용법 창을 닫아도 프로그램은 종료되지 않고 Windows 알림 영역에서 계속 실행됩니다.
 
@@ -63,9 +63,9 @@ With a Korean IME, `A` (alphabetic) mode permits accents. `가` (Hangul composit
 
 ## Installation
 
-Get the `v1.1.0` files from this repository's GitHub **Releases** section:
+Get the `v1.1.1` files from this repository's GitHub **Releases** section:
 
-- `FrenchAccentInput-Setup-1.1.0.exe`: per-user installer with optional Start menu and desktop shortcuts. No administrator elevation is requested by its configuration.
+- `FrenchAccentInput-Setup-1.1.1.exe`: per-user installer with optional Start menu and desktop shortcuts. No administrator elevation is requested by its configuration.
 - `FrenchAccentInput.exe`: standalone program; run it directly without an installer.
 - `SHA256SUMS.txt`: SHA-256 hashes of both EXE files. Compare each downloaded file with the matching line, for example with `Get-FileHash .\FrenchAccentInput.exe -Algorithm SHA256` in PowerShell.
 
@@ -87,7 +87,7 @@ The project was developed with Visual Studio Code on Windows 11 x64. The verifie
 
 ## Verified Environment
 
-On Windows 11 Pro x64 build 26200, the v1.1.0 source passed a warning-as-error Release build, CTest (2/2), and installer compilation. The project owner reported successful hands-on testing of the app and installer on Windows 11 before this version-only rebuild. Earlier physical-keyboard checks covered lowercase Left Alt, key repeat, shortcuts, Korean IME `A`/`가`, Notepad, Chrome textarea, and VS Code. The automated tests cover the Caps Lock and Shift uppercase routing. These checks do not guarantee behavior in every Windows application.
+On Windows 11 Pro x64 build 26200, the v1.1.1 source passed a warning-as-error Release build, CTest (2/2), and installer compilation. The project owner reported successful hands-on testing of the app and installer on Windows 11 before this version-only rebuild. Earlier physical-keyboard checks covered lowercase Left Alt, key repeat, shortcuts, Korean IME `A`/`가`, Notepad, Chrome textarea, and VS Code. The automated tests cover the Caps Lock and Shift uppercase routing. These checks do not guarantee behavior in every Windows application.
 
 ## Runtime / Supported Environment
 
@@ -186,9 +186,9 @@ Caps Lock이 꺼졌을 때 왼쪽 Alt는 소문자, Shift + 왼쪽 Alt는 대문
 
 ## 설치
 
-이 저장소의 GitHub **Releases**에서 `v1.1.0` 파일을 받는다.
+이 저장소의 GitHub **Releases**에서 `v1.1.1` 파일을 받는다.
 
-- `FrenchAccentInput-Setup-1.1.0.exe`: 사용자별 설치 프로그램. 시작 메뉴·바탕화면 바로가기를 선택할 수 있다. 설정상 관리자 권한 승격을 요청하지 않는다.
+- `FrenchAccentInput-Setup-1.1.1.exe`: 사용자별 설치 프로그램. 시작 메뉴·바탕화면 바로가기를 선택할 수 있다. 설정상 관리자 권한 승격을 요청하지 않는다.
 - `FrenchAccentInput.exe`: installer 없이 직접 실행하는 standalone 프로그램.
 - `SHA256SUMS.txt`: 두 EXE의 SHA-256 값. PowerShell에서 `Get-FileHash .\FrenchAccentInput.exe -Algorithm SHA256` 등으로 받은 파일의 값과 대조한다.
 
@@ -210,7 +210,7 @@ Windows 11 x64에서 Visual Studio Code를 편집기로 사용했다. 확인된 
 
 ## 실제 검증 환경
 
-Windows 11 Pro x64 build 26200에서 v1.1.0 source의 warning-as-error Release 빌드, CTest 2/2, installer 컴파일을 통과했다. 프로젝트 소유자는 이번 버전 표기만 바꿔 다시 빌드하기 전에 Windows 11에서 앱과 설치 프로그램을 직접 시험해 정상 동작을 보고했다. 앞선 물리 키보드 검증은 소문자 왼쪽 Alt, 키 반복, 단축키, 한국어 IME `A`/`가`, 메모장, Chrome textarea, VS Code를 포함했다. 자동 테스트는 Caps Lock·Shift 대문자 입력 경로를 검사한다. 이 결과가 모든 Windows 앱에서의 동작을 보장하지는 않는다.
+Windows 11 Pro x64 build 26200에서 v1.1.1 source의 warning-as-error Release 빌드, CTest 2/2, installer 컴파일을 통과했다. 프로젝트 소유자는 이번 버전 표기만 바꿔 다시 빌드하기 전에 Windows 11에서 앱과 설치 프로그램을 직접 시험해 정상 동작을 보고했다. 앞선 물리 키보드 검증은 소문자 왼쪽 Alt, 키 반복, 단축키, 한국어 IME `A`/`가`, 메모장, Chrome textarea, VS Code를 포함했다. 자동 테스트는 Caps Lock·Shift 대문자 입력 경로를 검사한다. 이 결과가 모든 Windows 앱에서의 동작을 보장하지는 않는다.
 
 ## 실행·지원 환경
 

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.24)
-project(FrenchAccentInput VERSION 1.1.0 LANGUAGES CXX RC)
+project(FrenchAccentInput VERSION 1.1.1 LANGUAGES CXX RC)
 
 # Ship an EXE without a separate MSVC runtime; rebuild releases for CRT updates.
 if(MSVC)

@@ -572,7 +572,7 @@ void show_tray_menu() {
     if (command == settings_command_id) { show_settings(); }
     if (command == about_command_id) {
         MessageBoxW(usage_window != nullptr ? usage_window : hidden_window,
-                    L"French Accent Input\r\nVersion 1.1.0", L"French Accent Input - 정보",
+                    L"French Accent Input\r\nVersion 1.1.1", L"French Accent Input - 정보",
                     MB_OK | MB_ICONINFORMATION);
     }
     if (command == exit_command_id) { DestroyWindow(hidden_window); }

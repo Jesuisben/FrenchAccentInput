@@ -1,5 +1,5 @@
 #define AppName "French Accent Input"
-#define AppVersion "1.1.0"
+#define AppVersion "1.1.1"
 #define AppExeName "FrenchAccentInput.exe"
 #define AppMutex "Local\FrenchAccentInput-4A67FCE1-5DC0-4ACB-9843-9672E4CBE071"
 
@@ -32,7 +32,7 @@ AppMutex={#AppMutex}
 ; 실행 중인 hook을 둔 채 파일을 교체하거나 제거하지 못하게 같은 mutex를 검사한다.
 CloseApplications=yes
 RestartApplications=no
-VersionInfoVersion=1.1.0.0
+VersionInfoVersion=1.1.1.0
 VersionInfoProductName={#AppName}
 VersionInfoProductVersion={#AppVersion}
 UsePreviousTasks=no
