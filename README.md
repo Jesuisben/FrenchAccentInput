@@ -2,6 +2,38 @@
 
 French Accent Input is a Windows 11 x64 utility for typing French accented letters in desktop applications. Hold **Left Alt** and press a supported letter. Caps Lock and Shift determine whether the accent is lowercase or uppercase. It uses the existing keyboard layout and runs in the system tray.
 
+**Languages / 언어:** [English](#french-accent-input) · [한국어](#french-accent-input-한국어)
+
+## Quick Install / 빠른 설치
+
+### English
+
+For most users, the installer is the easiest option.
+
+1. Open the [latest Release page](https://github.com/Jesuisben/FrenchAccentInput/releases/latest).
+2. Under **Assets**, download `FrenchAccentInput-Setup-1.1.0.exe`.
+3. Double-click the downloaded installer and follow the setup steps.
+4. After installation, launch **French Accent Input**. Closing the usage window does not exit the app; it continues running in the Windows notification area.
+
+`FrenchAccentInput.exe` is the standalone version for users who prefer to run the app without installing it. `SHA256SUMS.txt` is only for verifying downloaded files and is not something you run.
+
+**Note:** The EXE files are not code-signed, so Windows SmartScreen may display a warning. Before deciding whether to run the file, confirm that you downloaded it from this repository's official Release page.
+
+### 한국어
+
+일반 사용자는 설치 프로그램을 사용하는 것이 가장 간단합니다.
+
+1. [최신 Release 페이지](https://github.com/Jesuisben/FrenchAccentInput/releases/latest)를 엽니다.
+2. **Assets**에서 `FrenchAccentInput-Setup-1.1.0.exe`를 다운로드합니다.
+3. 다운로드한 설치 파일을 더블 클릭하고 안내에 따라 설치합니다.
+4. 설치 후 **French Accent Input**을 실행합니다. 사용법 창을 닫아도 프로그램은 종료되지 않고 Windows 알림 영역에서 계속 실행됩니다.
+
+`FrenchAccentInput.exe`는 설치하지 않고 바로 실행하는 standalone 버전입니다. `SHA256SUMS.txt`는 다운로드한 파일을 검증하기 위한 파일이며 실행하는 파일이 아닙니다.
+
+**참고:** EXE 파일은 코드 서명이 되어 있지 않아 Windows SmartScreen 경고가 표시될 수 있습니다. 실행 여부를 결정하기 전에 이 저장소의 공식 Release 페이지에서 다운로드한 파일인지 확인하세요.
+
+영어 상세 설명은 아래에서 계속됩니다. 한국어 전체 설명은 [여기](#french-accent-input-한국어)에서 확인할 수 있습니다.
+
 ## Project Overview
 
 The program adds a small set of French accent shortcuts without installing a new keyboard layout. An input router decides which physical keys to handle. Win32 keyboard and mouse hooks observe input; the program sends Unicode characters to the focused control when it can do so safely.
