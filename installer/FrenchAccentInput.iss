@@ -1,5 +1,5 @@
 #define AppName "French Accent Input"
-#define AppVersion "1.0.0"
+#define AppVersion "1.1.0"
 #define AppExeName "FrenchAccentInput.exe"
 #define AppMutex "Local\FrenchAccentInput-4A67FCE1-5DC0-4ACB-9843-9672E4CBE071"
 
@@ -23,6 +23,7 @@ OutputBaseFilename=FrenchAccentInput-Setup-{#AppVersion}
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
+SetupIconFile=..\resources\FrenchAccentInput.ico
 SetupLogging=yes
 Uninstallable=yes
 UninstallDisplayIcon={app}\{#AppExeName}
@@ -31,9 +32,10 @@ AppMutex={#AppMutex}
 ; 실행 중인 hook을 둔 채 파일을 교체하거나 제거하지 못하게 같은 mutex를 검사한다.
 CloseApplications=yes
 RestartApplications=no
-VersionInfoVersion=1.0.0.0
+VersionInfoVersion=1.1.0.0
 VersionInfoProductName={#AppName}
 VersionInfoProductVersion={#AppVersion}
+UsePreviousTasks=no
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -42,9 +44,17 @@ Name: "korean"; MessagesFile: "compiler:Languages\Korean.isl"
 [Files]
 Source: "..\build\Release\{#AppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 
+[Tasks]
+Name: "startmenuicon"; Description: "시작 메뉴 바로가기 만들기"; Flags: unchecked
+Name: "desktopicon"; Description: "바탕화면 바로가기 만들기"
+
 [Icons]
-Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"
-Name: "{group}\Uninstall {#AppName}"; Filename: "{uninstallexe}"
+Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"; Tasks: startmenuicon
+Name: "{userdesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#AppExeName}"; Description: "Launch {#AppName}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#AppExeName}"; Parameters: "--enable-autostart"; Description: "Windows 로그인 시 자동 실행"; Flags: postinstall skipifsilent unchecked runhidden
+Filename: "{app}\{#AppExeName}"; Description: "French Accent Input 실행"; Flags: nowait postinstall skipifsilent
+
+[UninstallRun]
+Filename: "{app}\{#AppExeName}"; Parameters: "--disable-autostart"; Flags: runhidden; RunOnceId: "RemoveCurrentUserAutostart"

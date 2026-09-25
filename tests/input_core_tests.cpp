@@ -101,6 +101,40 @@ void multi_character_sequences_replace_and_wrap() {
     }
 }
 
+void uppercase_caps_and_shift_cycle() {
+    struct Sequence { unsigned int key; const wchar_t* values; };
+    constexpr Sequence sequences[] = {
+        {'A', L"ÀÂÆ"}, {'C', L"Ç"}, {'E', L"ÉÈÊË"}, {'I', L"ÏÎ"},
+        {'O', L"ÔŒ"}, {'U', L"ÙÛÜ"}, {'Y', L"Ÿ"},
+    };
+    for (const auto& sequence : sequences) {
+        for (const bool caps_lock : {false, true}) {
+            fai::InputRouter router;
+            (void)router.handle(down(fai::vk_left_alt));
+            if (!caps_lock) { (void)router.handle(down(fai::vk_left_shift)); }
+            for (std::size_t index = 0; sequence.values[index] != L'\0'; ++index) {
+                auto event = down(sequence.key);
+                event.caps_lock_on = caps_lock;
+                const auto result = router.handle(event);
+                expect(result.suppress && result.edit &&
+                           result.edit->character == sequence.values[index] &&
+                           result.edit->replace_previous == (index != 0 && sequence.values[1] != L'\0'),
+                       "Caps Lock or Shift with Left Alt must produce uppercase accents");
+                (void)router.handle(up(sequence.key));
+            }
+        }
+    }
+
+    fai::InputRouter inverted;
+    (void)inverted.handle(down(fai::vk_left_alt));
+    (void)inverted.handle(down(fai::vk_left_shift));
+    auto both = down('E');
+    both.caps_lock_on = true;
+    const auto lower = inverted.handle(both);
+    expect(lower.edit && lower.edit->character == L'é',
+           "Caps Lock plus Shift must use lowercase, matching normal keyboard case inversion");
+}
+
 void native_shortcuts_and_injected_events_pass() {
     // 이 시험이 실패하면 악상 기능이 Windows의 기존 shortcut을 침범한 것이다.
     fai::InputRouter router;
@@ -117,7 +151,9 @@ void native_shortcuts_and_injected_events_pass() {
     fai::InputRouter shift_router;
     (void)shift_router.handle(down(fai::vk_left_alt));
     (void)shift_router.handle(down(fai::vk_left_shift));
-    expect(!shift_router.handle(down('E')).suppress, "Shift+Alt+E must pass");
+    const auto shifted = shift_router.handle(down('E'));
+    expect(shifted.suppress && shifted.edit && shifted.edit->character == L'É',
+           "Shift+Left Alt+E must produce uppercase É");
 
     fai::InputRouter windows_router;
     (void)windows_router.handle(down(fai::vk_left_alt));
@@ -193,6 +229,7 @@ int main() {
     single_character_keys_append();
     all_accent_mappings_are_stable();
     multi_character_sequences_replace_and_wrap();
+    uppercase_caps_and_shift_cycle();
     native_shortcuts_and_injected_events_pass();
     unsafe_replacement_is_cancelled();
     alt_release_starts_new_session();

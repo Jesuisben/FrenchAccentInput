@@ -24,6 +24,8 @@ struct KeyEvent {
     bool injected;
     std::uintptr_t target;
     bool accent_allowed = true;
+    bool caps_lock_on = false;
+    bool shift_down = false;
 };
 
 struct Edit {
@@ -63,6 +65,7 @@ private:
     char active_key_ = 0;
     std::size_t active_index_ = 0;
     std::uintptr_t active_target_ = 0;
+    bool active_uppercase_ = false;
 };
 
 } // namespace fai

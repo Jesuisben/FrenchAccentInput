@@ -8,23 +8,24 @@ namespace {
 
 struct AccentSequence {
     char key;
-    std::wstring_view characters;
+    std::wstring_view lowercase;
+    std::wstring_view uppercase;
 };
 
 constexpr std::array sequences{
-    AccentSequence{'A', L"àâæ"},
-    AccentSequence{'C', L"ç"},
-    AccentSequence{'E', L"éèêë"},
-    AccentSequence{'I', L"ïî"},
-    AccentSequence{'O', L"ôœ"},
-    AccentSequence{'U', L"ùûü"},
-    AccentSequence{'Y', L"ÿ"},
+    AccentSequence{'A', L"àâæ", L"ÀÂÆ"},
+    AccentSequence{'C', L"ç", L"Ç"},
+    AccentSequence{'E', L"éèêë", L"ÉÈÊË"},
+    AccentSequence{'I', L"ïî", L"ÏÎ"},
+    AccentSequence{'O', L"ôœ", L"ÔŒ"},
+    AccentSequence{'U', L"ùûü", L"ÙÛÜ"},
+    AccentSequence{'Y', L"ÿ", L"Ÿ"},
 };
 
-[[nodiscard]] std::wstring_view characters_for(unsigned int virtual_key) noexcept {
+[[nodiscard]] std::wstring_view characters_for(unsigned int virtual_key, bool uppercase) noexcept {
     for (const auto& sequence : sequences) {
         if (virtual_key == static_cast<unsigned int>(sequence.key)) {
-            return sequence.characters;
+            return uppercase ? sequence.uppercase : sequence.lowercase;
         }
     }
     return {};
@@ -76,7 +77,9 @@ RouteResult InputRouter::handle(const KeyEvent& event) {
         return {};
     }
 
-    const auto characters = characters_for(event.virtual_key);
+    const bool uppercase = event.caps_lock_on !=
+                           (left_shift_down_ || right_shift_down_ || event.shift_down);
+    const auto characters = characters_for(event.virtual_key, uppercase);
     if (!event.accent_allowed || !accent_mode_active() || characters.empty()) {
         cancel_sequence();
         return {};
@@ -92,7 +95,8 @@ RouteResult InputRouter::handle(const KeyEvent& event) {
     }
 
     const auto key = static_cast<char>(event.virtual_key);
-    const bool safe_to_replace = active_key_ == key && active_target_ != 0 &&
+    const bool safe_to_replace = active_key_ == key && active_uppercase_ == uppercase &&
+                                 active_target_ != 0 &&
                                  active_target_ == event.target;
     // foreground target이 같을 때만 Backspace를 허용해 다른 앱의 문자를 지우지 않는다.
     if (safe_to_replace) {
@@ -101,6 +105,7 @@ RouteResult InputRouter::handle(const KeyEvent& event) {
         active_key_ = key;
         active_index_ = 0;
         active_target_ = event.target;
+        active_uppercase_ = uppercase;
     }
 
     return {.suppress = true,
@@ -112,6 +117,7 @@ void InputRouter::cancel_sequence() noexcept {
     active_key_ = 0;
     active_index_ = 0;
     active_target_ = 0;
+    active_uppercase_ = false;
 }
 
 void InputRouter::abort_consumed_key(unsigned int virtual_key) noexcept {
@@ -124,7 +130,7 @@ void InputRouter::abort_consumed_key(unsigned int virtual_key) noexcept {
 
 bool InputRouter::accent_mode_active() const noexcept {
     return left_alt_down_ && !right_alt_down_ && !left_control_down_ &&
-           !right_control_down_ && !left_shift_down_ && !right_shift_down_ &&
+           !right_control_down_ &&
            !left_windows_down_ && !right_windows_down_;
 }
 

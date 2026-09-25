@@ -1,6 +1,6 @@
 # French Accent Input
 
-French Accent Input is a Windows 11 x64 utility for typing lowercase French accented letters in desktop applications. Hold **Left Alt** and press a supported letter. It uses the existing keyboard layout and runs in the system tray.
+French Accent Input is a Windows 11 x64 utility for typing French accented letters in desktop applications. Hold **Left Alt** and press a supported letter. Caps Lock and Shift determine whether the accent is lowercase or uppercase. It uses the existing keyboard layout and runs in the system tray.
 
 ## Project Overview
 
@@ -8,36 +8,36 @@ The program adds a small set of French accent shortcuts without installing a new
 
 ## Features
 
-| Left Alt + key | Characters in order | Repeated press |
-| --- | --- | --- |
-| A | à â æ | Replaces the previous character and cycles |
-| C | ç | Appends another character |
-| E | é è ê ë | Replaces the previous character and cycles |
-| I | ï î | Replaces the previous character and cycles |
-| O | ô œ | Replaces the previous character and cycles |
-| U | ù û ü | Replaces the previous character and cycles |
-| Y | ÿ | Appends another character |
+| Left Alt + key | Lowercase order | Uppercase order | Repeated press |
+| --- | --- | --- | --- |
+| a | à → â → æ | À → Â → Æ | Replaces the previous character and cycles |
+| c | ç | Ç | Appends another character |
+| e | é → è → ê → ë | É → È → Ê → Ë | Replaces the previous character and cycles |
+| i | ï → î | Ï → Î | Replaces the previous character and cycles |
+| o | ô → œ | Ô → Œ | Replaces the previous character and cycles |
+| u | ù → û → ü | Ù → Û → Ü | Replaces the previous character and cycles |
+| y | ÿ | Ÿ | Appends another character |
 
-The program leaves Right Alt/AltGr, Ctrl, Shift, Windows-key combinations, and unsupported Left Alt combinations to the original application. It prevents a second instance in the same user session.
+With Caps Lock off, Left Alt produces lowercase accents and Shift + Left Alt produces uppercase accents. With Caps Lock on, the cases reverse. The program leaves Right Alt/AltGr, Ctrl, Windows-key combinations, and unsupported Left Alt combinations to the original application. It prevents a second instance in the same user session. A direct launch opens the usage window and shows a Windows notification; launching it again reports the existing instance and reopens that window.
 
 ## Usage
 
-1. Run `FrenchAccentInput.exe` and find **French Accent Input** in the notification area.
-2. Hold **Left Alt** and press a supported key. For example, repeated `E` presses in one Left Alt session cycle through `é`, `è`, `ê`, `ë` in the same position.
+1. Run `FrenchAccentInput.exe`. The usage window opens and the app icon appears in the notification area. Closing the window leaves the input app running.
+2. Hold **Left Alt** and press a supported key. With Caps Lock off, press `e` repeatedly to cycle through `é`, `è`, `ê`, `ë` in the same position. Hold Shift as well for `É`, `È`, `Ê`, `Ë`. With Caps Lock on, Left Alt alone produces uppercase and adding Shift produces lowercase.
 3. Release Left Alt to start a new sequence. Changing focus, moving the caret, or using another key or the mouse also ends the replacement sequence.
-4. Right-click the notification-area icon and choose **Exit / 종료** to quit.
+4. Left-click the notification-area icon to reopen or restore the usage window. Right-click it for **Usage / 사용법**, **Settings / 설정**, **About / 정보**, and **Exit / 종료**. Settings can turn launch at Windows sign-in on or off for the current user. Choose **Exit / 종료** to quit.
 
 With a Korean IME, `A` (alphabetic) mode permits accents. `가` (Hangul composition) mode passes the original keys through. If the program cannot read the Korean IME mode, it conservatively skips accent conversion.
 
 ## Installation
 
-Get the `v1.0.0` files from this repository's GitHub **Releases** section:
+Get the `v1.1.0` files from this repository's GitHub **Releases** section:
 
-- `FrenchAccentInput-Setup-1.0.0.exe`: per-user installer; adds Start menu shortcuts and an uninstall entry. No administrator elevation is requested by its configuration.
+- `FrenchAccentInput-Setup-1.1.0.exe`: per-user installer with optional Start menu and desktop shortcuts. No administrator elevation is requested by its configuration.
 - `FrenchAccentInput.exe`: standalone program; run it directly without an installer.
 - `SHA256SUMS.txt`: SHA-256 hashes of both EXE files. Compare each downloaded file with the matching line, for example with `Get-FileHash .\FrenchAccentInput.exe -Algorithm SHA256` in PowerShell.
 
-The installer uses `%LOCALAPPDATA%\Programs\FrenchAccentInput` by default. Uninstall it through Windows Installed apps or its Start menu uninstall shortcut. It does not configure launch at Windows sign-in. The installer can offer to launch the app after installation.
+The installer uses `%LOCALAPPDATA%\Programs\FrenchAccentInput` by default. On the additional-tasks page, the Start menu shortcut is off by default and the desktop shortcut is on by default; both may be off. On the completion page, **Launch French Accent Input** is on by default and **Run at Windows sign-in** is off by default. A sign-in launch starts quietly in the tray. Uninstall through Windows Installed apps. If a Start menu shortcut was selected, it can also be used to launch the app.
 
 **Both EXE files are unsigned.** Windows SmartScreen or device policy may warn or block them. Verify the download source and hash before deciding whether to run them.
 
@@ -55,7 +55,7 @@ The project was developed with Visual Studio Code on Windows 11 x64. The verifie
 
 ## Verified Environment
 
-Automated Release build, CTest, standalone lifecycle, and installer install/run/uninstall checks passed on Windows 11 Pro x64 build 26200. CTest reports 2/2 tests passed. A user reported physical Left Alt, key-repeat, shortcuts, Korean IME `A`/`가`, Notepad, Chrome textarea, and VS Code checks passed on Windows 11 x64. That physical check used the same input source before the MSVC runtime-linkage change; the current binaries were rebuilt and automatically checked but were not physically retested.
+On Windows 11 Pro x64 build 26200, the v1.1.0 source passed a warning-as-error Release build, CTest (2/2), and installer compilation. The project owner reported successful hands-on testing of the app and installer on Windows 11 before this version-only rebuild. Earlier physical-keyboard checks covered lowercase Left Alt, key repeat, shortcuts, Korean IME `A`/`가`, Notepad, Chrome textarea, and VS Code. The automated tests cover the Caps Lock and Shift uppercase routing. These checks do not guarantee behavior in every Windows application.
 
 ## Runtime / Supported Environment
 
@@ -77,7 +77,9 @@ FrenchAccentInput/
 ├─ installer/                        # Installer source configuration
 │  └─ FrenchAccentInput.iss         # Per-user Inno Setup installer definition
 ├─ resources/                        # Windows executable resources
-│  └─ version.rc                    # Windows EXE version information
+│  ├─ FrenchAccentInput.ico         # Shared keycap-and-F icon for the app and installer
+│  ├─ resource_ids.h                # Numeric Windows icon resource identifier
+│  └─ version.rc                    # Windows EXE icon and version information
 ├─ scripts/                          # Build and packaging commands
 │  └─ build-release.ps1             # Release build, CTest, installer, and checksums
 ├─ src/                              # Product implementation
@@ -106,11 +108,10 @@ The release script runs both CTest cases. If CTest is on `PATH`, repeat them aft
 
 ## Limitations
 
-- Lowercase accented letters only; no configuration UI or automatic updates.
+- Settings currently cover sign-in launch, and there are no automatic updates.
 - Elevated applications, secure desktops, anti-cheat games, remote sessions, and every custom text control are not guaranteed. Output restrictions can prevent accent insertion or replacement.
 - Supported accent combinations take priority over the target app's same shortcut in alphabetic mode.
 - Unsigned binaries may trigger SmartScreen or be blocked by device policy.
-- Physical input was reported on the pre-linkage-change binary; the present artifact has automated, not repeated physical, input evidence.
 
 See [troubleshooting](docs/TROUBLESHOOTING.md) for user checks.
 
@@ -122,7 +123,7 @@ This project's source and documentation use the [MIT License](LICENSE). Inno Set
 
 # French Accent Input 한국어
 
-French Accent Input은 Windows 11 x64 데스크톱 앱에서 프랑스어 소문자 악상을 입력하는 도구다. **왼쪽 Alt**를 누른 채 지원 문자를 누른다. 기존 keyboard layout을 유지하며 알림 영역에서 실행된다.
+French Accent Input은 Windows 11 x64 데스크톱 앱에서 프랑스어 악상을 입력하는 도구다. **왼쪽 Alt**를 누른 채 지원 문자를 누른다. Caps Lock과 Shift 상태에 따라 소문자 또는 대문자 악상을 입력한다. 기존 keyboard layout을 유지하며 알림 영역에서 실행된다.
 
 ## 프로젝트 소개
 
@@ -130,36 +131,36 @@ French Accent Input은 Windows 11 x64 데스크톱 앱에서 프랑스어 소문
 
 ## 주요 기능
 
-| 왼쪽 Alt + 키 | 순서 | 반복 입력 |
-| --- | --- | --- |
-| A | à â æ | 직전 글자를 교체하며 순환 |
-| C | ç | 누를 때마다 추가 |
-| E | é è ê ë | 직전 글자를 교체하며 순환 |
-| I | ï î | 직전 글자를 교체하며 순환 |
-| O | ô œ | 직전 글자를 교체하며 순환 |
-| U | ù û ü | 직전 글자를 교체하며 순환 |
-| Y | ÿ | 누를 때마다 추가 |
+| 왼쪽 Alt + 키 | 소문자 순서 | 대문자 순서 | 반복 입력 |
+| --- | --- | --- | --- |
+| a | à → â → æ | À → Â → Æ | 직전 글자를 교체하며 순환 |
+| c | ç | Ç | 누를 때마다 추가 |
+| e | é → è → ê → ë | É → È → Ê → Ë | 직전 글자를 교체하며 순환 |
+| i | ï → î | Ï → Î | 직전 글자를 교체하며 순환 |
+| o | ô → œ | Ô → Œ | 직전 글자를 교체하며 순환 |
+| u | ù → û → ü | Ù → Û → Ü | 직전 글자를 교체하며 순환 |
+| y | ÿ | Ÿ | 누를 때마다 추가 |
 
-오른쪽 Alt/AltGr, Ctrl, Shift, Windows 키 조합과 지원하지 않는 왼쪽 Alt 조합은 원래 앱에 전달한다. 같은 사용자 세션에서 중복 실행을 막는다.
+Caps Lock이 꺼졌을 때 왼쪽 Alt는 소문자, Shift + 왼쪽 Alt는 대문자 악상을 입력한다. Caps Lock이 켜졌을 때는 반대다. 오른쪽 Alt/AltGr, Ctrl, Windows 키 조합과 지원하지 않는 왼쪽 Alt 조합은 원래 앱에 전달한다. 같은 사용자 세션에서 중복 실행을 막는다. 직접 실행하면 사용법 창과 Windows 알림을 표시한다. 다시 실행하면 이미 실행 중임을 알리고 기존 사용법 창을 연다.
 
 ## 사용법
 
-1. `FrenchAccentInput.exe`를 실행하고 알림 영역의 **French Accent Input** 아이콘을 확인한다.
-2. **왼쪽 Alt**를 누른 채 지원 키를 누른다. 같은 Alt 입력 흐름에서 `E`를 반복하면 한 자리의 글자가 `é`, `è`, `ê`, `ë`로 순환한다.
+1. `FrenchAccentInput.exe`를 실행한다. 사용법 창이 열리고 알림 영역에 아이콘이 나타난다. 창을 닫아도 입력기는 계속 실행된다.
+2. **왼쪽 Alt**를 누른 채 지원 키를 누른다. Caps Lock이 꺼진 상태에서 `e`를 반복하면 한 자리의 글자가 `é`, `è`, `ê`, `ë`로 순환한다. Shift도 함께 누르면 `É`, `È`, `Ê`, `Ë`가 나온다. Caps Lock이 켜진 상태에서는 왼쪽 Alt만 누르면 대문자, Shift를 함께 누르면 소문자다.
 3. 왼쪽 Alt를 떼면 새 순서가 시작된다. 포커스·커서 이동이나 다른 키·마우스 입력도 교체 순서를 끝낸다.
-4. 종료할 때 알림 영역 아이콘을 오른쪽 클릭하고 **Exit / 종료**를 선택한다.
+4. 알림 영역 아이콘을 왼쪽 클릭하면 사용법 창을 다시 열거나 복원한다. 오른쪽 클릭 메뉴에는 **사용법**, **설정**, **정보**, **종료**가 있다. 설정에서 현재 사용자의 Windows 로그인 시 자동 실행을 켜거나 끌 수 있다. 완전히 끝내려면 **종료**를 선택한다.
 
 한국어 IME `A`(영문) 모드에서는 악상을 입력한다. `가`(한글 조합) 모드에서는 원래 키를 통과시킨다. 한국어 IME 모드를 읽지 못해도 보수적으로 악상 변환을 건너뛴다.
 
 ## 설치
 
-이 저장소의 GitHub **Releases**에서 `v1.0.0` 파일을 받는다.
+이 저장소의 GitHub **Releases**에서 `v1.1.0` 파일을 받는다.
 
-- `FrenchAccentInput-Setup-1.0.0.exe`: 사용자별 설치 프로그램. 시작 메뉴 바로가기와 제거 항목을 만든다. 설정상 관리자 권한 승격을 요청하지 않는다.
+- `FrenchAccentInput-Setup-1.1.0.exe`: 사용자별 설치 프로그램. 시작 메뉴·바탕화면 바로가기를 선택할 수 있다. 설정상 관리자 권한 승격을 요청하지 않는다.
 - `FrenchAccentInput.exe`: installer 없이 직접 실행하는 standalone 프로그램.
 - `SHA256SUMS.txt`: 두 EXE의 SHA-256 값. PowerShell에서 `Get-FileHash .\FrenchAccentInput.exe -Algorithm SHA256` 등으로 받은 파일의 값과 대조한다.
 
-기본 설치 경로는 `%LOCALAPPDATA%\Programs\FrenchAccentInput`이다. Windows 설치된 앱 또는 시작 메뉴의 제거 바로가기에서 제거한다. Windows 로그인 시 자동 시작은 설정하지 않는다. 설치 완료 화면에서는 바로 실행을 선택할 수 있다.
+기본 설치 경로는 `%LOCALAPPDATA%\Programs\FrenchAccentInput`이다. 추가 작업 화면에서 시작 메뉴 바로가기는 기본 해제, 바탕화면 바로가기는 기본 선택이며 둘 다 해제할 수 있다. 완료 화면의 **French Accent Input 실행**은 기본 선택, **Windows 로그인 시 자동 실행**은 기본 해제다. 로그인으로 자동 실행하면 사용법 창과 실행 알림 없이 tray에서 조용히 시작한다. 제거는 Windows **설치된 앱**에서 한다.
 
 **두 EXE는 모두 서명되지 않았다.** Windows SmartScreen이나 PC 정책이 경고 또는 차단할 수 있다. 실행 여부를 판단하기 전에 다운로드 출처와 hash를 확인한다.
 
@@ -177,7 +178,7 @@ Windows 11 x64에서 Visual Studio Code를 편집기로 사용했다. 확인된 
 
 ## 실제 검증 환경
 
-Windows 11 Pro x64 build 26200에서 자동 Release 빌드, CTest, standalone lifecycle, installer 설치·실행·제거를 통과했다. CTest는 2/2 통과했다. 사용자는 Windows 11 x64에서 물리 왼쪽 Alt, 키 반복, 단축키, 한국어 IME `A`/`가`, 메모장, Chrome textarea, VS Code 검증 PASS를 보고했다. 해당 물리 검증은 MSVC 런타임 연결 방식 변경 전 같은 입력 source를 사용했다. 현재 산출물은 재빌드와 자동 검증을 거쳤지만 물리 입력은 다시 시험하지 않았다.
+Windows 11 Pro x64 build 26200에서 v1.1.0 source의 warning-as-error Release 빌드, CTest 2/2, installer 컴파일을 통과했다. 프로젝트 소유자는 이번 버전 표기만 바꿔 다시 빌드하기 전에 Windows 11에서 앱과 설치 프로그램을 직접 시험해 정상 동작을 보고했다. 앞선 물리 키보드 검증은 소문자 왼쪽 Alt, 키 반복, 단축키, 한국어 IME `A`/`가`, 메모장, Chrome textarea, VS Code를 포함했다. 자동 테스트는 Caps Lock·Shift 대문자 입력 경로를 검사한다. 이 결과가 모든 Windows 앱에서의 동작을 보장하지는 않는다.
 
 ## 실행·지원 환경
 
@@ -199,7 +200,9 @@ FrenchAccentInput/
 ├─ installer/                        # 설치 프로그램 설정 파일
 │  └─ FrenchAccentInput.iss         # 사용자별 Inno Setup 설치 설정
 ├─ resources/                        # Windows 실행 파일 리소스
-│  └─ version.rc                    # Windows EXE 버전 정보
+│  ├─ FrenchAccentInput.ico         # 앱과 설치 프로그램에 공통으로 쓰는 키캡·F 아이콘
+│  ├─ resource_ids.h                # Windows 아이콘 리소스 숫자 식별자
+│  └─ version.rc                    # Windows EXE 아이콘·버전 정보
 ├─ scripts/                          # 빌드·패키징 명령
 │  └─ build-release.ps1             # 릴리스 빌드·CTest·설치 파일·검사값 생성
 ├─ src/                              # 제품 구현
@@ -228,11 +231,10 @@ Release 스크립트는 CTest 두 항목을 실행한다. CTest가 `PATH`에 있
 
 ## 한계
 
-- 소문자 악상만 제공한다. 설정 UI와 자동 업데이트는 없다.
+- 현재 설정은 로그인 시 자동 실행만 지원하며 자동 업데이트는 없다.
 - 관리자 권한 앱, 보안 데스크톱, anti-cheat 게임, 원격 세션, 모든 사용자 정의 입력칸의 동작은 보장하지 않는다. 출력 제한이 악상 삽입·교체를 막을 수 있다.
 - 영문 입력 모드에서 지원 악상 조합은 대상 앱의 동일 단축키보다 우선한다.
 - 미서명 실행 파일은 SmartScreen 경고나 PC 정책에 따른 차단을 받을 수 있다.
-- 물리 입력 PASS는 링크 변경 전 binary의 보고다. 현재 artifact의 입력 증거는 자동 검증이며 물리 검증을 반복하지 않았다.
 
 사용자 점검 절차는 [문제 해결 문서](docs/TROUBLESHOOTING.md)를 참고한다.
 

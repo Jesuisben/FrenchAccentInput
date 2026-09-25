@@ -288,8 +288,7 @@ void partial_output_releases_transient_keys() {
 }
 
 void unseen_modifier_must_not_be_intercepted() {
-    for (const int modifier : {VK_LCONTROL, VK_RCONTROL, VK_LSHIFT, VK_RSHIFT,
-                               VK_LWIN, VK_RWIN, VK_RMENU}) {
+    for (const int modifier : {VK_LCONTROL, VK_RCONTROL, VK_LWIN, VK_RWIN, VK_RMENU}) {
         router = fai::InputRouter{};
         (void)router.handle({VK_LMENU, true, false, 1});
         // This modifier was already down before our hook received any event.
@@ -303,6 +302,51 @@ void unseen_modifier_must_not_be_intercepted() {
                "already-held modifier shortcut key-up must pass through");
     }
     held_modifier = 0;
+}
+
+void uppercase_keyboard_hook_routing() {
+    test_focus = CreateWindowExW(0, L"STATIC", L"", 0,
+                                 0, 0, 0, 0, nullptr, nullptr, nullptr, nullptr);
+    expect(test_focus != nullptr, "hidden uppercase output target must exist");
+    if (test_focus == nullptr) { return; }
+    const auto emits_uppercase_e = [] {
+        for (const auto& input : captured_inputs) {
+            if ((input.ki.dwFlags & KEYEVENTF_UNICODE) != 0 && input.ki.wScan == L'É') {
+                return true;
+            }
+        }
+        return false;
+    };
+    KBDLLHOOKSTRUCT caps{};
+    caps.vkCode = VK_CAPITAL;
+    caps_lock_on = false;
+    caps_key_down = false;
+    (void)keyboard_proc(HC_ACTION, WM_KEYDOWN, reinterpret_cast<LPARAM>(&caps));
+    (void)keyboard_proc(HC_ACTION, WM_KEYDOWN, reinterpret_cast<LPARAM>(&caps));
+    expect(caps_lock_on, "Caps Lock repeat must toggle only once per press");
+    (void)keyboard_proc(HC_ACTION, WM_KEYUP, reinterpret_cast<LPARAM>(&caps));
+    router = fai::InputRouter{};
+    (void)router.handle({VK_LMENU, true, false, 1});
+    KBDLLHOOKSTRUCT e{};
+    e.vkCode = 'E';
+    e.flags = LLKHF_ALTDOWN;
+    captured_inputs.clear();
+    (void)keyboard_proc(HC_ACTION, WM_SYSKEYDOWN, reinterpret_cast<LPARAM>(&e));
+    expect(emits_uppercase_e(), "Caps Lock with Left Alt must emit uppercase É");
+
+    (void)keyboard_proc(HC_ACTION, WM_KEYDOWN, reinterpret_cast<LPARAM>(&caps));
+    (void)keyboard_proc(HC_ACTION, WM_KEYUP, reinterpret_cast<LPARAM>(&caps));
+    expect(!caps_lock_on, "second Caps Lock press must turn it off");
+    router = fai::InputRouter{};
+    (void)router.handle({VK_LMENU, true, false, 1});
+    held_modifier = VK_LSHIFT;
+    captured_inputs.clear();
+    (void)keyboard_proc(HC_ACTION, WM_SYSKEYDOWN, reinterpret_cast<LPARAM>(&e));
+    expect(emits_uppercase_e(), "already-held Shift with Left Alt must emit uppercase É");
+    held_modifier = 0;
+    router = fai::InputRouter{};
+    DestroyWindow(test_focus);
+    test_focus = nullptr;
 }
 
 void korean_hangul_must_not_emit_accent() {
@@ -357,11 +401,21 @@ void korean_hangul_must_not_emit_accent() {
 }
 
 int main() {
+    expect(startup_action(nullptr) == StartupAction::normal, "direct launch shows normal UX");
+    expect(startup_action(L"--autostart") == StartupAction::autostart,
+           "login launch stays quiet");
+    expect(startup_action(L"--enable-autostart") == StartupAction::enable_autostart,
+           "installer startup choice must not start the input runtime");
+    expect(startup_action(L"--disable-autostart") == StartupAction::disable_autostart,
+           "uninstaller startup removal must not start the input runtime");
+    expect(startup_action(L"--quit-existing") == StartupAction::quit_existing,
+           "existing lifecycle test control remains available");
     output_contract();
     native_editor_replacement();
     injected_input_cancels_only_external_edits();
     partial_output_releases_transient_keys();
     unseen_modifier_must_not_be_intercepted();
+    uppercase_keyboard_hook_routing();
     korean_hangul_must_not_emit_accent();
     if (failures != 0) {
         return EXIT_FAILURE;
