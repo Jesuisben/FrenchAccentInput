@@ -1,8 +1,8 @@
 # French Accent Input
 
-French Accent Input is a Windows 11 x64 utility for typing French accented letters in desktop applications.
-Hold **Left Alt** and press a supported letter.
-Caps Lock and Shift determine whether the accent is lowercase or uppercase.
+French Accent Input is a Windows 11 x64 utility for typing French accented letters in desktop applications.\
+Hold **Left Alt** and press a supported letter.\
+Caps Lock and Shift determine whether the accent is lowercase or uppercase.\
 It uses the existing keyboard layout and runs in the system tray.
 
 **Languages / 언어:** [English](#french-accent-input) · [한국어](#french-accent-input-한국어)
@@ -16,13 +16,13 @@ For most users, the installer is the easiest option.
 1. Open the [latest Release page](https://github.com/Jesuisben/FrenchAccentInput/releases/latest).
 2. Under **Assets**, download `FrenchAccentInput-Setup-1.1.1.exe`.
 3. Double-click the downloaded installer and follow the setup steps.
-4. After installation, launch **French Accent Input**.
+4. After installation, launch **French Accent Input**.\
    Closing the usage window does not exit the app; it continues running in the Windows notification area.
 
-`FrenchAccentInput.exe` is the standalone version for users who prefer to run the app without installing it.
+`FrenchAccentInput.exe` is the standalone version for users who prefer to run the app without installing it.\
 `SHA256SUMS.txt` is only for verifying downloaded files and is not something you run.
 
-**Note:** The EXE files are not code-signed, so Windows SmartScreen may display a warning.
+**Note:** The EXE files are not code-signed, so Windows SmartScreen may display a warning.\
 Before deciding whether to run the file, confirm that you downloaded it from this repository's official Release page.
 
 ### 한국어
@@ -32,22 +32,22 @@ Before deciding whether to run the file, confirm that you downloaded it from thi
 1. [최신 Release 페이지](https://github.com/Jesuisben/FrenchAccentInput/releases/latest)를 엽니다.
 2. **Assets**에서 `FrenchAccentInput-Setup-1.1.1.exe`를 다운로드합니다.
 3. 다운로드한 설치 파일을 더블 클릭하고 안내에 따라 설치합니다.
-4. 설치 후 **French Accent Input**을 실행합니다.
+4. 설치 후 **French Accent Input**을 실행합니다.\
    사용법 창을 닫아도 프로그램은 종료되지 않고 Windows 알림 영역에서 계속 실행됩니다.
 
-`FrenchAccentInput.exe`는 설치하지 않고 바로 실행하는 standalone 버전입니다.
+`FrenchAccentInput.exe`는 설치하지 않고 바로 실행하는 standalone 버전입니다.\
 `SHA256SUMS.txt`는 다운로드한 파일을 검증하기 위한 파일이며 실행하는 파일이 아닙니다.
 
-**참고:** EXE 파일은 코드 서명이 되어 있지 않아 Windows SmartScreen 경고가 표시될 수 있습니다.
+**참고:** EXE 파일은 코드 서명이 되어 있지 않아 Windows SmartScreen 경고가 표시될 수 있습니다.\
 실행 여부를 결정하기 전에 이 저장소의 공식 Release 페이지에서 다운로드한 파일인지 확인하세요.
 
-영어 상세 설명은 아래에서 계속됩니다.
+영어 상세 설명은 아래에서 계속됩니다.\
 한국어 전체 설명은 [여기](#french-accent-input-한국어)에서 확인할 수 있습니다.
 
 ## Project Overview
 
-The program adds a small set of French accent shortcuts without installing a new keyboard layout.
-An input router decides which physical keys to handle.
+The program adds a small set of French accent shortcuts without installing a new keyboard layout.\
+An input router decides which physical keys to handle.\
 Win32 keyboard and mouse hooks observe input; the program sends Unicode characters to the focused control when it can do so safely.
 
 ## Features
@@ -62,85 +62,85 @@ Win32 keyboard and mouse hooks observe input; the program sends Unicode characte
 | u | ù → û → ü | Ù → Û → Ü | Replaces the previous character and cycles |
 | y | ÿ | Ÿ | Appends another character |
 
-With Caps Lock off, Left Alt produces lowercase accents and Shift + Left Alt produces uppercase accents.
-With Caps Lock on, the cases reverse.
-The program leaves Right Alt/AltGr, Ctrl, Windows-key combinations, and unsupported Left Alt combinations to the original application.
-It prevents a second instance in the same user session.
+With Caps Lock off, Left Alt produces lowercase accents and Shift + Left Alt produces uppercase accents.\
+With Caps Lock on, the cases reverse.\
+The program leaves Right Alt/AltGr, Ctrl, Windows-key combinations, and unsupported Left Alt combinations to the original application.\
+It prevents a second instance in the same user session.\
 A direct launch opens the usage window and shows a Windows notification; launching it again reports the existing instance and reopens that window.
 
 ## Usage
 
-1. Run `FrenchAccentInput.exe`.
-   The usage window opens and the app icon appears in the notification area.
+1. Run `FrenchAccentInput.exe`.\
+   The usage window opens and the app icon appears in the notification area.\
    Closing the window leaves the input app running.
-2. Hold **Left Alt** and press a supported key.
-   With Caps Lock off, press `e` repeatedly to cycle through `é`, `è`, `ê`, `ë` in the same position.
-   Hold Shift as well for `É`, `È`, `Ê`, `Ë`.
+2. Hold **Left Alt** and press a supported key.\
+   With Caps Lock off, press `e` repeatedly to cycle through `é`, `è`, `ê`, `ë` in the same position.\
+   Hold Shift as well for `É`, `È`, `Ê`, `Ë`.\
    With Caps Lock on, Left Alt alone produces uppercase and adding Shift produces lowercase.
-3. Release Left Alt to start a new sequence.
+3. Release Left Alt to start a new sequence.\
    Changing focus, moving the caret, or using another key or the mouse also ends the replacement sequence.
-4. Left-click the notification-area icon to reopen or restore the usage window.
-   Right-click it for **Usage / 사용법**, **Settings / 설정**, **About / 정보**, and **Exit / 종료**.
-   Settings can turn launch at Windows sign-in on or off for the current user.
+4. Left-click the notification-area icon to reopen or restore the usage window.\
+   Right-click it for **Usage / 사용법**, **Settings / 설정**, **About / 정보**, and **Exit / 종료**.\
+   Settings can turn launch at Windows sign-in on or off for the current user.\
    Choose **Exit / 종료** to quit.
 
-With a Korean IME, `A` (alphabetic) mode permits accents.
-`가` (Hangul composition) mode passes the original keys through.
+With a Korean IME, `A` (alphabetic) mode permits accents.\
+`가` (Hangul composition) mode passes the original keys through.\
 If the program cannot read the Korean IME mode, it conservatively skips accent conversion.
 
 ## Installation
 
 Get the `v1.1.1` files from this repository's GitHub **Releases** section:
 
-- `FrenchAccentInput-Setup-1.1.1.exe`: per-user installer with optional Start menu and desktop shortcuts.
+- `FrenchAccentInput-Setup-1.1.1.exe`: per-user installer with optional Start menu and desktop shortcuts.\
   No administrator elevation is requested by its configuration.
 - `FrenchAccentInput.exe`: standalone program; run it directly without an installer.
-- `SHA256SUMS.txt`: SHA-256 hashes of both EXE files.
+- `SHA256SUMS.txt`: SHA-256 hashes of both EXE files.\
   Compare each downloaded file with the matching line, for example with `Get-FileHash .\FrenchAccentInput.exe -Algorithm SHA256` in PowerShell.
 
-The installer uses `%LOCALAPPDATA%\Programs\FrenchAccentInput` by default.
-On the additional-tasks page, the Start menu shortcut is off by default and the desktop shortcut is on by default; both may be off.
-On the completion page, **Launch French Accent Input** is on by default and **Run at Windows sign-in** is off by default.
-A sign-in launch starts quietly in the tray.
-Uninstall through Windows Installed apps.
+The installer uses `%LOCALAPPDATA%\Programs\FrenchAccentInput` by default.\
+On the additional-tasks page, the Start menu shortcut is off by default and the desktop shortcut is on by default; both may be off.\
+On the completion page, **Launch French Accent Input** is on by default and **Run at Windows sign-in** is off by default.\
+A sign-in launch starts quietly in the tray.\
+Uninstall through Windows Installed apps.\
 If a Start menu shortcut was selected, it can also be used to launch the app.
 
-**Both EXE files are unsigned.**
-Windows SmartScreen or device policy may warn or block them.
+**Both EXE files are unsigned.**\
+Windows SmartScreen or device policy may warn or block them.\
 Verify the download source and hash before deciding whether to run them.
 
 ## Privacy & Security
 
-The app handles keyboard events and focused-control identity in memory to produce accents.
-The source contains no telemetry, network request, account sign-in, or code that stores typed text or window titles.
-The installer enables a local setup log for installation troubleshooting.
+The app handles keyboard events and focused-control identity in memory to produce accents.\
+The source contains no telemetry, network request, account sign-in, or code that stores typed text or window titles.\
+The installer enables a local setup log for installation troubleshooting.\
 A normal-permission process cannot inject text into elevated apps because of Windows integrity boundaries.
 
 ## Tech Stack
 
-C++20; Win32 API (`WH_KEYBOARD_LL`, `WH_MOUSE_LL`, `SendInput`, system tray and single-instance mutex); Windows IME/IMM; CMake and CTest; MSVC and Windows SDK; Inno Setup for the installer.
+C++20; Win32 API (`WH_KEYBOARD_LL`, `WH_MOUSE_LL`, `SendInput`, system tray and single-instance mutex); Windows IME/IMM; CMake and CTest; MSVC and Windows SDK; Inno Setup for the installer.\
 No third-party application library is bundled in the source tree.
 
 ## Development Environment
 
-The project was developed with Visual Studio Code on Windows 11 x64.
-The verified build uses Visual Studio 2026 Build Tools with the **Desktop development with C++** workload, MSVC 19.50, Windows SDK 10.0.26100, bundled CMake 4.2.3, PowerShell, and Inno Setup 7.1.0.
-CMake requires version 3.24 or newer.
+The project was developed with Visual Studio Code on Windows 11 x64.\
+The verified build uses Visual Studio 2026 Build Tools with the **Desktop development with C++** workload, MSVC 19.50, Windows SDK 10.0.26100, bundled CMake 4.2.3, PowerShell, and Inno Setup 7.1.0.\
+CMake requires version 3.24 or newer.\
 VS Code is an editor, not a runtime requirement.
 
 ## Verified Environment
 
-On Windows 11 Pro x64 build 26200, the v1.1.1 source passed a warning-as-error Release build, CTest (2/2), and installer compilation.
-The project owner reported successful hands-on testing of the app and installer on Windows 11 before this version-only rebuild.
-Earlier physical-keyboard checks covered lowercase Left Alt, key repeat, shortcuts, Korean IME `A`/`가`, Notepad, Chrome textarea, and VS Code.
-The automated tests cover the Caps Lock and Shift uppercase routing.
+On Windows 11 Pro x64 build 26200, the v1.1.1 source passed a warning-as-error Release build, CTest (2/2), and installer compilation.\
+The project owner reported successful hands-on testing of the app and installer on Windows 11 before this version-only rebuild.\
+Earlier physical-keyboard checks covered lowercase Left Alt, key repeat, shortcuts, Korean IME `A`/`가`, Notepad, Chrome textarea, and VS Code.\
+The automated tests cover the Caps Lock and Shift uppercase routing.\
 These checks do not guarantee behavior in every Windows application.
 
 ## Runtime / Supported Environment
 
-The documented target is Windows 11 x64, with ordinary desktop input at the same or lower integrity level.
-The installer requires Windows build 22000 or later and an x64-compatible system.
-The current EXE statically links the MSVC runtime, so users do not need VS Code, CMake, Build Tools, Inno Setup, or a separate Visual C++ Redistributable to run it.
+The documented target is Windows 11 x64, with ordinary desktop input at the same or lower integrity level.\
+The installer requires Windows build 22000 or later and an x64-compatible system.\
+The current EXE statically links the MSVC runtime, so users do not need VS Code, CMake, Build Tools, Inno Setup, or a separate Visual C++ Redistributable to run it.\
 This does not promise compatibility with every application or Windows configuration.
 
 ## Project Structure
@@ -176,30 +176,30 @@ FrenchAccentInput/
 
 ## Build
 
-Install the development tools listed above.
+Install the development tools listed above.\
 In PowerShell at the project root, run:
 
 ```powershell
 .\scripts\build-release.ps1
 ```
 
-The script configures an x64 Release build with the Visual Studio 2026 generator, builds the app and CTest targets with MSVC warnings treated as errors, runs CTest, builds the Inno Setup installer, and writes the two EXE files plus `SHA256SUMS.txt` to `dist/`.
-If CMake is on `PATH`, run `cmake --build build --config Release --target ALL_BUILD` after configuration to build every target, including the explicit integration helpers.
+The script configures an x64 Release build with the Visual Studio 2026 generator, builds the app and CTest targets with MSVC warnings treated as errors, runs CTest, builds the Inno Setup installer, and writes the two EXE files plus `SHA256SUMS.txt` to `dist/`.\
+If CMake is on `PATH`, run `cmake --build build --config Release --target ALL_BUILD` after configuration to build every target, including the explicit integration helpers.\
 The release script can locate Visual Studio's bundled CMake even when it is not on `PATH`.
 
 ## Test
 
-The release script runs both CTest cases.
-If CTest is on `PATH`, repeat them after configuration with `ctest --test-dir build -C Release --output-on-failure`.
-`input_core` checks accent routing and modifier behavior.
-`win32_output_contract` records Win32 output calls without sending desktop input.
-The virtual keyboard driver and test hosts are not CTest cases; they can generate synthetic desktop input when launched explicitly.
+The release script runs both CTest cases.\
+If CTest is on `PATH`, repeat them after configuration with `ctest --test-dir build -C Release --output-on-failure`.\
+`input_core` checks accent routing and modifier behavior.\
+`win32_output_contract` records Win32 output calls without sending desktop input.\
+The virtual keyboard driver and test hosts are not CTest cases; they can generate synthetic desktop input when launched explicitly.\
 Automated and synthetic tests do not establish physical keyboard or IME behavior.
 
 ## Limitations
 
 - Settings currently cover sign-in launch, and there are no automatic updates.
-- Elevated applications, secure desktops, anti-cheat games, remote sessions, and every custom text control are not guaranteed.
+- Elevated applications, secure desktops, anti-cheat games, remote sessions, and every custom text control are not guaranteed.\
   Output restrictions can prevent accent insertion or replacement.
 - Supported accent combinations take priority over the target app's same shortcut in alphabetic mode.
 - Unsigned binaries may trigger SmartScreen or be blocked by device policy.
@@ -208,23 +208,23 @@ See [troubleshooting](docs/TROUBLESHOOTING.md) for user checks.
 
 ## License
 
-This project's source and documentation use the [MIT License](LICENSE).
-Inno Setup and Microsoft build/runtime tools have their own terms; the project's MIT License does not replace them.
+This project's source and documentation use the [MIT License](LICENSE).\
+Inno Setup and Microsoft build/runtime tools have their own terms; the project's MIT License does not replace them.\
 See [Inno Setup's license](https://jrsoftware.org/files/is/license.txt) and [Microsoft's Visual C++ redistribution guidance](https://learn.microsoft.com/en-us/cpp/windows/redistributing-visual-cpp-files?view=msvc-170).
 
 ---
 
 # French Accent Input 한국어
 
-French Accent Input은 Windows 11 x64 데스크톱 앱에서 프랑스어 악상을 입력하는 도구다.
-**왼쪽 Alt**를 누른 채 지원 문자를 누른다.
-Caps Lock과 Shift 상태에 따라 소문자 또는 대문자 악상을 입력한다.
+French Accent Input은 Windows 11 x64 데스크톱 앱에서 프랑스어 악상을 입력하는 도구다.\
+**왼쪽 Alt**를 누른 채 지원 문자를 누른다.\
+Caps Lock과 Shift 상태에 따라 소문자 또는 대문자 악상을 입력한다.\
 기존 keyboard layout을 유지하며 알림 영역에서 실행된다.
 
 ## 프로젝트 소개
 
-새 keyboard layout을 설치하지 않고 제한된 프랑스어 악상 단축키를 제공한다.
-입력 라우터가 물리 키 처리 여부를 결정한다.
+새 keyboard layout을 설치하지 않고 제한된 프랑스어 악상 단축키를 제공한다.\
+입력 라우터가 물리 키 처리 여부를 결정한다.\
 Win32 keyboard/mouse hook으로 입력을 관찰하고, 안전한 경우 포커스된 입력칸에 Unicode 문자를 넣는다.
 
 ## 주요 기능
@@ -239,86 +239,86 @@ Win32 keyboard/mouse hook으로 입력을 관찰하고, 안전한 경우 포커�
 | u | ù → û → ü | Ù → Û → Ü | 직전 글자를 교체하며 순환 |
 | y | ÿ | Ÿ | 누를 때마다 추가 |
 
-Caps Lock이 꺼졌을 때 왼쪽 Alt는 소문자, Shift + 왼쪽 Alt는 대문자 악상을 입력한다.
-Caps Lock이 켜졌을 때는 반대다.
-오른쪽 Alt/AltGr, Ctrl, Windows 키 조합과 지원하지 않는 왼쪽 Alt 조합은 원래 앱에 전달한다.
-같은 사용자 세션에서 중복 실행을 막는다.
-직접 실행하면 사용법 창과 Windows 알림을 표시한다.
+Caps Lock이 꺼졌을 때 왼쪽 Alt는 소문자, Shift + 왼쪽 Alt는 대문자 악상을 입력한다.\
+Caps Lock이 켜졌을 때는 반대다.\
+오른쪽 Alt/AltGr, Ctrl, Windows 키 조합과 지원하지 않는 왼쪽 Alt 조합은 원래 앱에 전달한다.\
+같은 사용자 세션에서 중복 실행을 막는다.\
+직접 실행하면 사용법 창과 Windows 알림을 표시한다.\
 다시 실행하면 이미 실행 중임을 알리고 기존 사용법 창을 연다.
 
 ## 사용법
 
-1. `FrenchAccentInput.exe`를 실행한다.
-   사용법 창이 열리고 알림 영역에 아이콘이 나타난다.
+1. `FrenchAccentInput.exe`를 실행한다.\
+   사용법 창이 열리고 알림 영역에 아이콘이 나타난다.\
    창을 닫아도 입력기는 계속 실행된다.
-2. **왼쪽 Alt**를 누른 채 지원 키를 누른다.
-   Caps Lock이 꺼진 상태에서 `e`를 반복하면 한 자리의 글자가 `é`, `è`, `ê`, `ë`로 순환한다.
-   Shift도 함께 누르면 `É`, `È`, `Ê`, `Ë`가 나온다.
+2. **왼쪽 Alt**를 누른 채 지원 키를 누른다.\
+   Caps Lock이 꺼진 상태에서 `e`를 반복하면 한 자리의 글자가 `é`, `è`, `ê`, `ë`로 순환한다.\
+   Shift도 함께 누르면 `É`, `È`, `Ê`, `Ë`가 나온다.\
    Caps Lock이 켜진 상태에서는 왼쪽 Alt만 누르면 대문자, Shift를 함께 누르면 소문자다.
-3. 왼쪽 Alt를 떼면 새 순서가 시작된다.
+3. 왼쪽 Alt를 떼면 새 순서가 시작된다.\
    포커스·커서 이동이나 다른 키·마우스 입력도 교체 순서를 끝낸다.
-4. 알림 영역 아이콘을 왼쪽 클릭하면 사용법 창을 다시 열거나 복원한다.
-   오른쪽 클릭 메뉴에는 **사용법**, **설정**, **정보**, **종료**가 있다.
-   설정에서 현재 사용자의 Windows 로그인 시 자동 실행을 켜거나 끌 수 있다.
+4. 알림 영역 아이콘을 왼쪽 클릭하면 사용법 창을 다시 열거나 복원한다.\
+   오른쪽 클릭 메뉴에는 **사용법**, **설정**, **정보**, **종료**가 있다.\
+   설정에서 현재 사용자의 Windows 로그인 시 자동 실행을 켜거나 끌 수 있다.\
    완전히 끝내려면 **종료**를 선택한다.
 
-한국어 IME `A`(영문) 모드에서는 악상을 입력한다.
-`가`(한글 조합) 모드에서는 원래 키를 통과시킨다.
+한국어 IME `A`(영문) 모드에서는 악상을 입력한다.\
+`가`(한글 조합) 모드에서는 원래 키를 통과시킨다.\
 한국어 IME 모드를 읽지 못해도 보수적으로 악상 변환을 건너뛴다.
 
 ## 설치
 
 이 저장소의 GitHub **Releases**에서 `v1.1.1` 파일을 받는다.
 
-- `FrenchAccentInput-Setup-1.1.1.exe`: 사용자별 설치 프로그램.
-  시작 메뉴·바탕화면 바로가기를 선택할 수 있다.
+- `FrenchAccentInput-Setup-1.1.1.exe`: 사용자별 설치 프로그램.\
+  시작 메뉴·바탕화면 바로가기를 선택할 수 있다.\
   설정상 관리자 권한 승격을 요청하지 않는다.
 - `FrenchAccentInput.exe`: installer 없이 직접 실행하는 standalone 프로그램.
-- `SHA256SUMS.txt`: 두 EXE의 SHA-256 값.
+- `SHA256SUMS.txt`: 두 EXE의 SHA-256 값.\
   PowerShell에서 `Get-FileHash .\FrenchAccentInput.exe -Algorithm SHA256` 등으로 받은 파일의 값과 대조한다.
 
-기본 설치 경로는 `%LOCALAPPDATA%\Programs\FrenchAccentInput`이다.
-추가 작업 화면에서 시작 메뉴 바로가기는 기본 해제, 바탕화면 바로가기는 기본 선택이며 둘 다 해제할 수 있다.
-완료 화면의 **French Accent Input 실행**은 기본 선택, **Windows 로그인 시 자동 실행**은 기본 해제다.
-로그인으로 자동 실행하면 사용법 창과 실행 알림 없이 tray에서 조용히 시작한다.
+기본 설치 경로는 `%LOCALAPPDATA%\Programs\FrenchAccentInput`이다.\
+추가 작업 화면에서 시작 메뉴 바로가기는 기본 해제, 바탕화면 바로가기는 기본 선택이며 둘 다 해제할 수 있다.\
+완료 화면의 **French Accent Input 실행**은 기본 선택, **Windows 로그인 시 자동 실행**은 기본 해제다.\
+로그인으로 자동 실행하면 사용법 창과 실행 알림 없이 tray에서 조용히 시작한다.\
 제거는 Windows **설치된 앱**에서 한다.
 
-**두 EXE는 모두 서명되지 않았다.**
-Windows SmartScreen이나 PC 정책이 경고 또는 차단할 수 있다.
+**두 EXE는 모두 서명되지 않았다.**\
+Windows SmartScreen이나 PC 정책이 경고 또는 차단할 수 있다.\
 실행 여부를 판단하기 전에 다운로드 출처와 hash를 확인한다.
 
 ## 개인정보·보안
 
-앱은 악상 입력을 위해 keyboard event와 포커스된 입력칸의 식별 정보를 메모리에서 처리한다.
-source에는 telemetry, network 요청, 계정 로그인, 입력 문자나 창 제목을 저장하는 코드가 없다.
-설치 프로그램은 문제 해결을 위한 로컬 설치 로그를 활성화한다.
+앱은 악상 입력을 위해 keyboard event와 포커스된 입력칸의 식별 정보를 메모리에서 처리한다.\
+source에는 telemetry, network 요청, 계정 로그인, 입력 문자나 창 제목을 저장하는 코드가 없다.\
+설치 프로그램은 문제 해결을 위한 로컬 설치 로그를 활성화한다.\
 일반 권한 프로세스는 Windows 권한 경계 때문에 관리자 권한 앱에 문자를 주입할 수 없다.
 
 ## 기술 스택
 
-C++20, Win32 API(`WH_KEYBOARD_LL`, `WH_MOUSE_LL`, `SendInput`, 알림 영역, 단일 실행 mutex), Windows IME/IMM, CMake·CTest, MSVC·Windows SDK, 설치 프로그램용 Inno Setup을 사용한다.
+C++20, Win32 API(`WH_KEYBOARD_LL`, `WH_MOUSE_LL`, `SendInput`, 알림 영역, 단일 실행 mutex), Windows IME/IMM, CMake·CTest, MSVC·Windows SDK, 설치 프로그램용 Inno Setup을 사용한다.\
 공개 source tree에 제3자 앱 라이브러리를 포함하지 않는다.
 
 ## 개발 환경
 
-Windows 11 x64에서 Visual Studio Code를 편집기로 사용했다.
-확인된 빌드 환경은 Visual Studio 2026 Build Tools의 **Desktop development with C++** workload, MSVC 19.50, Windows SDK 10.0.26100, 번들 CMake 4.2.3, PowerShell, Inno Setup 7.1.0이다.
-CMake 최소 버전은 3.24다.
+Windows 11 x64에서 Visual Studio Code를 편집기로 사용했다.\
+확인된 빌드 환경은 Visual Studio 2026 Build Tools의 **Desktop development with C++** workload, MSVC 19.50, Windows SDK 10.0.26100, 번들 CMake 4.2.3, PowerShell, Inno Setup 7.1.0이다.\
+CMake 최소 버전은 3.24다.\
 VS Code는 편집기이며 실행 요구사항이 아니다.
 
 ## 실제 검증 환경
 
-Windows 11 Pro x64 build 26200에서 v1.1.1 source의 warning-as-error Release 빌드, CTest 2/2, installer 컴파일을 통과했다.
-프로젝트 소유자는 이번 버전 표기만 바꿔 다시 빌드하기 전에 Windows 11에서 앱과 설치 프로그램을 직접 시험해 정상 동작을 보고했다.
-앞선 물리 키보드 검증은 소문자 왼쪽 Alt, 키 반복, 단축키, 한국어 IME `A`/`가`, 메모장, Chrome textarea, VS Code를 포함했다.
-자동 테스트는 Caps Lock·Shift 대문자 입력 경로를 검사한다.
+Windows 11 Pro x64 build 26200에서 v1.1.1 source의 warning-as-error Release 빌드, CTest 2/2, installer 컴파일을 통과했다.\
+프로젝트 소유자는 이번 버전 표기만 바꿔 다시 빌드하기 전에 Windows 11에서 앱과 설치 프로그램을 직접 시험해 정상 동작을 보고했다.\
+앞선 물리 키보드 검증은 소문자 왼쪽 Alt, 키 반복, 단축키, 한국어 IME `A`/`가`, 메모장, Chrome textarea, VS Code를 포함했다.\
+자동 테스트는 Caps Lock·Shift 대문자 입력 경로를 검사한다.\
 이 결과가 모든 Windows 앱에서의 동작을 보장하지는 않는다.
 
 ## 실행·지원 환경
 
-문서상 대상은 Windows 11 x64의 일반 권한 데스크톱 입력이다.
-installer는 Windows build 22000 이상과 x64 호환 시스템을 요구한다.
-현재 EXE는 MSVC 런타임을 정적 링크하므로 일반 사용자는 VS Code, CMake, Build Tools, Inno Setup, 별도의 Visual C++ Redistributable이 필요 없다.
+문서상 대상은 Windows 11 x64의 일반 권한 데스크톱 입력이다.\
+installer는 Windows build 22000 이상과 x64 호환 시스템을 요구한다.\
+현재 EXE는 MSVC 런타임을 정적 링크하므로 일반 사용자는 VS Code, CMake, Build Tools, Inno Setup, 별도의 Visual C++ Redistributable이 필요 없다.\
 모든 앱과 Windows 구성을 보장한다는 뜻은 아니다.
 
 ## 프로젝트 구조
@@ -354,31 +354,31 @@ FrenchAccentInput/
 
 ## 빌드
 
-위 개발 도구를 설치한다.
+위 개발 도구를 설치한다.\
 프로젝트 root의 PowerShell에서 실행한다.
 
 ```powershell
 .\scripts\build-release.ps1
 ```
 
-이 스크립트는 Visual Studio 2026 generator로 x64 Release를 구성하고, MSVC 경고를 오류로 취급해 앱과 CTest 대상을 빌드한다.
-CTest를 실행한 다음 Inno Setup installer와 두 EXE·`SHA256SUMS.txt`를 `dist/`에 만든다.
-CMake가 `PATH`에 있으면 구성 후 `cmake --build build --config Release --target ALL_BUILD`로 명시적 통합 검증 도구까지 모든 대상을 빌드할 수 있다.
+이 스크립트는 Visual Studio 2026 generator로 x64 Release를 구성하고, MSVC 경고를 오류로 취급해 앱과 CTest 대상을 빌드한다.\
+CTest를 실행한 다음 Inno Setup installer와 두 EXE·`SHA256SUMS.txt`를 `dist/`에 만든다.\
+CMake가 `PATH`에 있으면 구성 후 `cmake --build build --config Release --target ALL_BUILD`로 명시적 통합 검증 도구까지 모든 대상을 빌드할 수 있다.\
 Release 스크립트는 CMake가 `PATH`에 없어도 Visual Studio의 번들 CMake를 찾는다.
 
 ## 테스트
 
-Release 스크립트는 CTest 두 항목을 실행한다.
-CTest가 `PATH`에 있으면 구성 후 `ctest --test-dir build -C Release --output-on-failure`로 다시 실행한다.
-`input_core`는 악상 routing과 modifier 규칙을 검사한다.
-`win32_output_contract`는 실제 데스크톱 입력 없이 Win32 출력 호출을 기록해 검사한다.
-virtual keyboard driver와 test host는 CTest 대상이 아니며 명시적으로 실행하면 합성 데스크톱 입력을 만들 수 있다.
+Release 스크립트는 CTest 두 항목을 실행한다.\
+CTest가 `PATH`에 있으면 구성 후 `ctest --test-dir build -C Release --output-on-failure`로 다시 실행한다.\
+`input_core`는 악상 routing과 modifier 규칙을 검사한다.\
+`win32_output_contract`는 실제 데스크톱 입력 없이 Win32 출력 호출을 기록해 검사한다.\
+virtual keyboard driver와 test host는 CTest 대상이 아니며 명시적으로 실행하면 합성 데스크톱 입력을 만들 수 있다.\
 자동·합성 테스트는 물리 키보드나 실제 IME 성공 증거가 아니다.
 
 ## 한계
 
 - 현재 설정은 로그인 시 자동 실행만 지원하며 자동 업데이트는 없다.
-- 관리자 권한 앱, 보안 데스크톱, anti-cheat 게임, 원격 세션, 모든 사용자 정의 입력칸의 동작은 보장하지 않는다.
+- 관리자 권한 앱, 보안 데스크톱, anti-cheat 게임, 원격 세션, 모든 사용자 정의 입력칸의 동작은 보장하지 않는다.\
   출력 제한이 악상 삽입·교체를 막을 수 있다.
 - 영문 입력 모드에서 지원 악상 조합은 대상 앱의 동일 단축키보다 우선한다.
 - 미서명 실행 파일은 SmartScreen 경고나 PC 정책에 따른 차단을 받을 수 있다.
@@ -387,6 +387,6 @@ virtual keyboard driver와 test host는 CTest 대상이 아니며 명시적으�
 
 ## 라이선스
 
-이 프로젝트의 source와 문서는 [MIT License](LICENSE)를 사용한다.
-Inno Setup과 Microsoft 빌드·런타임 도구에는 별도 조건이 적용되며, 프로젝트 MIT가 이를 대신하지 않는다.
+이 프로젝트의 source와 문서는 [MIT License](LICENSE)를 사용한다.\
+Inno Setup과 Microsoft 빌드·런타임 도구에는 별도 조건이 적용되며, 프로젝트 MIT가 이를 대신하지 않는다.\
 [Inno Setup 라이선스](https://jrsoftware.org/files/is/license.txt)와 [Microsoft Visual C++ 재배포 안내](https://learn.microsoft.com/en-us/cpp/windows/redistributing-visual-cpp-files?view=msvc-170)를 확인한다.
